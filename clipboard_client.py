@@ -5,9 +5,8 @@ import websockets
 clipboard_content = ""
 
 
-async def connect_to_server():
+async def connect_to_server(uri):
     global clipboard_content
-    uri = "ws://192.168.31.194:8001/ws"
     async with websockets.connect(uri) as websocket:
         # 发送本地剪贴板内容到服务端
         local_content = pyperclip.paste()
@@ -46,4 +45,19 @@ async def clipboard_listener(websocket):
 
 
 if __name__ == "__main__":
-    asyncio.run(connect_to_server())
+    # 提示用户输入 IP 和端口，并提供默认值
+    address = input("请输入 WebSocket 服务器地址（格式为 ip:port，默认为 localhost:8001）：").strip()
+
+    # 如果用户输入了内容，则解析；否则使用默认值
+    if address:
+        try:
+            ip, port = address.split(":")
+            uri = f"ws://{ip}:{port}/ws"
+        except ValueError:
+            print("输入格式错误，将使用默认值。")
+            uri = "ws://localhost:8001/ws"
+    else:
+        uri = "ws://localhost:8001/ws"
+
+    print(f"正在连接到 WebSocket 服务器：{uri}")
+    asyncio.run(connect_to_server(uri))
