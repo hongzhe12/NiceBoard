@@ -1,12 +1,23 @@
+import ctypes
 import sys
 import keyboard
 from threading import Thread
 from PySide6.QtWidgets import QApplication, QMainWindow
-from PySide6.QtCore import QObject, Signal, QPoint
+from PySide6.QtCore import QObject, Signal, QPoint, Qt
 from PySide6.QtGui import QCursor
 from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 
+
+def make_window_immersive(hwnd):
+    """通过 WinAPI 设置为系统级面板样式"""
+    GWL_EXSTYLE = -20
+    WS_EX_TOOLWINDOW = 0x00000080
+    WS_EX_NOACTIVATE = 0x08000000
+
+    old_style = ctypes.windll.user32.GetWindowLongA(hwnd, GWL_EXSTYLE)
+    new_style = old_style | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
+    ctypes.windll.user32.SetWindowLongA(hwnd, GWL_EXSTYLE, new_style)
 
 class HotkeyManager(QObject):
     """全局热键管理"""
@@ -40,7 +51,7 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui.setupUi(self)
 
         # 初始化设置
-        self.setWindowTitle("剪贴板历史记录 (SQLAlchemy)")
+        self.setWindowTitle("剪贴板历史记录")
         self.setFixedSize(400, 500)
 
         # 信号连接
@@ -116,21 +127,43 @@ class ClipboardHistoryApp(QMainWindow):
         else:
             self._show_at_cursor()
 
+    # def _show_at_cursor(self):
+    #     """在鼠标位置显示窗口"""
+    #     cursor_pos = QCursor.pos()
+    #     screen = QApplication.primaryScreen().availableGeometry()
+    #
+    #     # 计算窗口位置（防止超出屏幕）
+    #     x = min(max(cursor_pos.x(), screen.left()),
+    #             screen.right() - self.width())
+    #     y = min(max(cursor_pos.y(), screen.top()),
+    #             screen.bottom() - self.height())
+    #
+    #     self.move(QPoint(x, y))
+    #     self.show()
+    #     make_window_immersive(int(self.winId()))  # 传入窗口句柄
+    #     self.activateWindow()
+    #     self.raise_()
+
     def _show_at_cursor(self):
-        """在鼠标位置显示窗口"""
+        # 设置为无边框工具窗口
+        self.setWindowFlags(
+            Qt.WindowStaysOnTopHint |
+            Qt.Tool |
+            Qt.FramelessWindowHint
+        )
+
+        # 计算位置（多屏幕安全）
         cursor_pos = QCursor.pos()
-        screen = QApplication.primaryScreen().availableGeometry()
+        screen = QApplication.screenAt(cursor_pos).availableGeometry()
+        x = min(max(cursor_pos.x(), screen.x()), screen.right() - self.width())
+        y = min(max(cursor_pos.y(), screen.y()), screen.bottom() - self.height())
 
-        # 计算窗口位置（防止超出屏幕）
-        x = min(max(cursor_pos.x(), screen.left()),
-                screen.right() - self.width())
-        y = min(max(cursor_pos.y(), screen.top()),
-                screen.bottom() - self.height())
-
-        self.move(QPoint(x, y))
+        self.move(int(x), int(y))
         self.show()
-        self.activateWindow()
+
+        # 确保焦点（但不抢输入焦点）
         self.raise_()
+        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
 
     def closeEvent(self, event):
         """关闭时清理资源"""
