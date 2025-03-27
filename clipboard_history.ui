@@ -55,7 +55,7 @@ QWidget#header {
 
 /* ===== 搜索框 (QQ9输入框风格) ===== */
 QLineEdit#search_box {
-    border: 1px solid #cce0ff;
+    border: 5px solid #cce0ff;
     border-radius: 6px;
     padding: 8px 12px 8px 32px;  /* 左侧留出图标空间 */
     margin: 6px;
@@ -73,7 +73,7 @@ QLineEdit#search_box:focus {
 /* ===== 历史列表 (QQ9卡片风格) ===== */
 QListWidget#history_list {
     background: white;
-    border: 1px solid #d5e3ff;
+    border: 5px solid #d5e3ff;
     border-radius: 8px;
     padding: 2px;
     margin: 0 6px 6px 6px;

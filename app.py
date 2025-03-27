@@ -85,13 +85,25 @@ class ClipboardHistoryApp(QMainWindow):
     def mousePressEvent(self, event):
         """鼠标按下时记录位置"""
         if event.button() == Qt.LeftButton:
-            self.drag_pos = event.globalPos()
+            # self.drag_pos = event.globalPos()
+            # 新版写法
+            self.drag_pos = event.globalPosition().toPoint()
 
     def mouseMoveEvent(self, event):
         """鼠标移动时拖动窗口"""
         if self.drag_pos and event.buttons() & Qt.LeftButton:
             self.move(self.pos() + event.globalPos() - self.drag_pos)
-            self.drag_pos = event.globalPos()
+            # self.drag_pos = event.globalPos()
+
+            self.drag_pos = event.globalPosition().toPoint()
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动时拖动窗口"""
+        if self.drag_pos and event.buttons() & Qt.LeftButton:
+            # 获取当前全局坐标（兼容写法）
+            current_pos = event.globalPosition().toPoint()
+            self.move(self.pos() + current_pos - self.drag_pos)
+            self.drag_pos = current_pos
 
     def mouseReleaseEvent(self, event):
         """鼠标释放时清空位置"""
