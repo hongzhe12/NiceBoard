@@ -1,120 +1,139 @@
 import sys
-from PySide6.QtWidgets import (QApplication, QMainWindow, QListWidget,
-                               QVBoxLayout, QWidget, QPushButton)
-from PySide6.QtCore import QObject, Signal, QPoint
-from PySide6.QtGui import QCursor
 import keyboard
 from threading import Thread
+from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtCore import QObject, Signal, QPoint
+from PySide6.QtGui import QCursor
+from models import ClipboardItem, Session
+from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 
 
 class HotkeyManager(QObject):
+    """全局热键管理"""
     hotkey_pressed = Signal()
 
     def __init__(self):
         super().__init__()
         self._running = False
 
-    def start_listen(self, hotkey):
-        """启动热键监听线程"""
+    def start_listen(self, hotkey='ctrl+shift+v'):
         if self._running:
             self.stop_listen()
-
         self._running = True
         Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
 
     def stop_listen(self):
-        """停止热键监听"""
         self._running = False
         keyboard.unhook_all()
 
     def _listen_hotkey(self, hotkey):
-        """监听热键的线程函数"""
         while self._running:
             keyboard.wait(hotkey)
             if self._running:
                 self.hotkey_pressed.emit()
 
 
-class SimpleClipboardHistory(QMainWindow):
+class ClipboardHistoryApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("剪贴板历史记录")
-        self.setFixedSize(300, 400)  # 固定窗口大小
+        self.ui = Ui_SimpleClipboardHistory()
+        self.ui.setupUi(self)
 
-        # 初始化UI
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        # 初始化设置
+        self.setWindowTitle("剪贴板历史记录 (SQLAlchemy)")
+        self.setFixedSize(400, 500)
 
-        layout = QVBoxLayout()
-        central_widget.setLayout(layout)
+        # 信号连接
+        self.ui.toggle_btn.clicked.connect(self.hide)
+        self.ui.history_list.itemDoubleClicked.connect(self._copy_to_clipboard)
 
-        self.history_list = QListWidget()
-        layout.addWidget(self.history_list)
-
-        # 添加控制按钮
-        self.toggle_btn = QPushButton("隐藏窗口")
-        self.toggle_btn.clicked.connect(self.hide)
-        layout.addWidget(self.toggle_btn)
-
-        # 初始化剪贴板历史记录
-        self.clipboard_history = []
-
-        # 开始监控剪贴板
+        # 初始化剪贴板监控
         self.clipboard = QApplication.clipboard()
-        self.clipboard.dataChanged.connect(self.on_clipboard_change)
+        self.clipboard.dataChanged.connect(self._on_clipboard_change)
 
-        # 设置全局热键
+        # 热键设置
         self.hotkey_manager = HotkeyManager()
-        self.hotkey_manager.hotkey_pressed.connect(self.show_at_cursor)
-        self.setup_global_hotkey()
+        self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
+        self.hotkey_manager.start_listen()
 
-    def setup_global_hotkey(self):
-        """设置全局热键Ctrl+Shift+V"""
+        # 加载历史记录
+        self._load_history()
+
+    def _load_history(self, limit=50):
+        """从数据库加载历史记录"""
+        self.ui.history_list.clear()
+        session = Session()
         try:
-            self.hotkey_manager.start_listen('ctrl+shift+v')
-            print("全局热键注册成功：Ctrl+Shift+V")
-        except Exception as e:
-            print(f"热键注册失败: {e}\n请尝试以管理员身份运行程序")
+            items = session.query(ClipboardItem) \
+                .order_by(ClipboardItem.timestamp.desc()) \
+                .limit(limit) \
+                .all()
+            for item in items:
+                self.ui.history_list.addItem(item.content)
+        finally:
+            session.close()
 
-    def on_clipboard_change(self):
+    def _on_clipboard_change(self):
         """剪贴板内容变化时的处理"""
         mime_data = self.clipboard.mimeData()
-        if mime_data.hasText():
-            text = mime_data.text().strip()
-            if text and (not self.clipboard_history or text != self.clipboard_history[0]):
-                self.clipboard_history.insert(0, text)
-                self.history_list.insertItem(0, text)
+        if not mime_data.hasText():
+            return
 
-                if len(self.clipboard_history) > 50:
-                    self.clipboard_history.pop()
-                    self.history_list.takeItem(self.history_list.count() - 1)
+        text = mime_data.text().strip()
+        if not text:
+            return
 
-    def show_at_cursor(self):
-        """在鼠标位置显示窗口的左上角"""
+        session = Session()
+        try:
+            # 检查是否已存在相同内容
+            exists = session.query(ClipboardItem) \
+                .filter(ClipboardItem.content == text) \
+                .first()
+            if not exists:
+                # 插入新记录
+                new_item = ClipboardItem(content=text)
+                session.add(new_item)
+                session.commit()
+                # 更新UI
+                self.ui.history_list.insertItem(0, text)
+                # 限制显示数量
+                if self.ui.history_list.count() > 50:
+                    self.ui.history_list.takeItem(50)
+        except Exception as e:
+            session.rollback()
+            print(f"数据库错误: {e}")
+        finally:
+            session.close()
+
+    def _copy_to_clipboard(self, item):
+        """双击项目复制到剪贴板"""
+        self.clipboard.setText(item.text())
+
+    def toggle_window(self):
+        """切换窗口显示状态"""
         if self.isVisible():
             self.hide()
         else:
-            # 获取鼠标当前位置
-            cursor_pos = QCursor.pos()
-            screen_geometry = QApplication.primaryScreen().availableGeometry()
+            self._show_at_cursor()
 
-            # 计算窗口位置（左上角对齐鼠标）
-            x = cursor_pos.x()  # 直接对齐鼠标 x 坐标
-            y = cursor_pos.y()  # 直接对齐鼠标 y 坐标
+    def _show_at_cursor(self):
+        """在鼠标位置显示窗口"""
+        cursor_pos = QCursor.pos()
+        screen = QApplication.primaryScreen().availableGeometry()
 
-            # 确保窗口不会超出屏幕边界
-            window_width = self.width()
-            window_height = self.height()
-            x = max(screen_geometry.left(), min(x, screen_geometry.right() - window_width))
-            y = max(screen_geometry.top(), min(y, screen_geometry.bottom() - window_height))
+        # 计算窗口位置（防止超出屏幕）
+        x = min(max(cursor_pos.x(), screen.left()),
+                screen.right() - self.width())
+        y = min(max(cursor_pos.y(), screen.top()),
+                screen.bottom() - self.height())
 
-            self.move(QPoint(x, y))
-            self.show()
-            self.activateWindow()
-            self.raise_()
+        self.move(QPoint(x, y))
+        self.show()
+        self.activateWindow()
+        self.raise_()
 
     def closeEvent(self, event):
-        """窗口关闭时清理资源"""
+        """关闭时清理资源"""
         self.hotkey_manager.stop_listen()
         super().closeEvent(event)
 
@@ -122,15 +141,16 @@ class SimpleClipboardHistory(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
+    # 全局样式
     app.setStyleSheet("""
+        QListWidget {
+            font-size: 12px;
+            padding: 5px;
+        }
         QPushButton {
             padding: 8px;
-            font-size: 12px;
-        }
-        QListWidget {
-            font-size: 13px;
         }
     """)
 
-    window = SimpleClipboardHistory()
+    window = ClipboardHistoryApp()
     sys.exit(app.exec())
