@@ -4,7 +4,7 @@ import keyboard
 from threading import Thread
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import QObject, Signal, QPoint, Qt
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QPainterPath, QRegion
 from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 
@@ -55,7 +55,7 @@ class ClipboardHistoryApp(QMainWindow):
         self.setFixedSize(400, 500)
 
         # 信号连接
-        self.ui.toggle_btn.clicked.connect(self.hide)
+        # self.ui.toggle_btn.clicked.connect(self.hide)
         self.ui.history_list.itemDoubleClicked.connect(self._copy_to_clipboard)
 
         # 初始化剪贴板监控
@@ -69,6 +69,60 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 加载历史记录
         self._load_history()
+
+        # 关键设置：无边框 + 背景透明
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+
+        # 设置圆角遮罩
+        self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
+
+        # 连接搜索框信号
+        self.ui.search_box.textChanged.connect(self.filter_history)
+        # 拖动相关变量
+        self.drag_pos = None
+
+    def mousePressEvent(self, event):
+        """鼠标按下时记录位置"""
+        if event.button() == Qt.LeftButton:
+            self.drag_pos = event.globalPos()
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动时拖动窗口"""
+        if self.drag_pos and event.buttons() & Qt.LeftButton:
+            self.move(self.pos() + event.globalPos() - self.drag_pos)
+            self.drag_pos = event.globalPos()
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放时清空位置"""
+        self.drag_pos = None
+
+    def filter_history(self, text):
+        """根据搜索文本过滤列表"""
+        session = Session()
+        try:
+            self.ui.history_list.clear()
+            items = session.query(ClipboardItem) \
+                .filter(ClipboardItem.content.contains(text)) \
+                .order_by(ClipboardItem.timestamp.desc()) \
+                .limit(50) \
+                .all()
+            for item in items:
+                self.ui.history_list.addItem(item.content)
+        finally:
+            session.close()
+
+    def setMaskCornerRadius(self, radius):
+        """ 创建圆角遮罩 """
+        path = QPainterPath()
+        path.addRoundedRect(self.rect(), radius, radius)
+        region = QRegion(path.toFillPolygon().toPolygon())
+        self.setMask(region)
+
+    def resizeEvent(self, event):
+        """ 窗口大小改变时更新遮罩 """
+        self.setMaskCornerRadius(12)
+        super().resizeEvent(event)
 
     def _load_history(self, limit=50):
         """从数据库加载历史记录"""

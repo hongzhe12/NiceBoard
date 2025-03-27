@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>233</width>
-    <height>340</height>
+    <width>384</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -25,17 +25,150 @@
   <property name="windowTitle">
    <string>剪贴板历史记录</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">/* 主窗口样式 */
+SimpleClipboardHistory {
+    background: #f0f2f5;
+    border-radius: 12px;
+    border: 1px solid #c1d9ff;  /* 半透明蓝色边框 */
+    padding: 10px;  /* 内边距=拖动边缘宽度 */
+}
+
+/* 可视化拖动边缘效果 */
+SimpleClipboardHistory::border {
+    border: 10px solid rgba(193, 217, 255, 0.3);  /* 半透明拖动区 */
+    border-radius: 12px;
+}
+
+/* 标题栏样式 */
+QWidget#header {
+    height: 32px;
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 rgba(255,255,255,0.8), 
+        stop:1 rgba(240, 245, 255, 0.6)
+    );
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: 1px solid rgba(193, 217, 255, 0.5);
+}
+
+/* ===== 搜索框 (QQ9输入框风格) ===== */
+QLineEdit#search_box {
+    border: 1px solid #cce0ff;
+    border-radius: 6px;
+    padding: 8px 12px 8px 32px;  /* 左侧留出图标空间 */
+    margin: 6px;
+    font-size: 13px;
+    background: white url(:/icons/search.svg) no-repeat 10px center;
+    selection-background-color: #b3d7ff;
+    color: #333;
+}
+
+QLineEdit#search_box:focus {
+    border: 1px solid #66a3ff;
+    background-color: #f5f9ff;
+}
+
+/* ===== 历史列表 (QQ9卡片风格) ===== */
+QListWidget#history_list {
+    background: white;
+    border: 1px solid #d5e3ff;
+    border-radius: 8px;
+    padding: 2px;
+    margin: 0 6px 6px 6px;
+    outline: none;
+    font-size: 13px;
+}
+
+/* 列表项 */
+QListWidget#history_list::item {
+    height: 36px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ebf1ff;
+    color: #333;
+}
+
+/* 悬停效果 */
+QListWidget#history_list::item:hover {
+    background: #f0f7ff;
+    border-radius: 4px;
+}
+
+/* 选中效果 */
+QListWidget#history_list::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                              stop:0 #d9ecff, stop:1 #c4e1ff);
+    color: #0066cc;
+    border-radius: 4px;
+}
+
+/* ===== QQ9经典按钮 ===== */
+QPushButton#toggle_btn {
+    /* 基础样式 */
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                              stop:0 #4facfe, stop:1 #00b2ff);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 36px;
+    
+    /* QQ9立体效果 */
+    border-top: 1px solid rgba(255,255,255,0.5);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+/* 悬停效果 */
+QPushButton#toggle_btn:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                              stop:0 #5fb8ff, stop:1 #00bfff);
+}
+
+/* 按下效果 */
+QPushButton#toggle_btn:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                              stop:0 #3a9df4, stop:1 #0099e6);
+    padding-top: 11px;
+    padding-bottom: 9px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+/* ===== 滚动条 (QQ9轻量风格) ===== */
+QScrollBar:vertical {
+    width: 8px;
+    background: transparent;
+    border-left: 1px solid #e1e8f0;
+}
+
+QScrollBar::handle:vertical {
+    background: #c1d9ff;
+    border-radius: 3px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #a8c8ff;
+}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QListWidget" name="history_list"/>
-    </item>
-    <item>
-     <widget class="QPushButton" name="toggle_btn">
-      <property name="text">
-       <string>隐藏窗口</string>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLineEdit" name="search_box">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="placeholderText">
+       <string>搜索剪贴板历史...</string>
       </property>
      </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QListWidget" name="history_list"/>
     </item>
    </layout>
   </widget>
