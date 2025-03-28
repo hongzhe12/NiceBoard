@@ -12,7 +12,7 @@ import rc_resources
 import psutil
 import logging
 # 配置日志记录
-logging.basicConfig(filename='app.log', level=logging.ERROR)
+logging.basicConfig(filename='app.log', level=logging.INFO)
 
 def make_window_immersive(hwnd):
     """通过 WinAPI 设置为系统级面板样式"""
