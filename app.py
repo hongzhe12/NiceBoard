@@ -133,7 +133,7 @@ class ClipboardHistoryApp(QMainWindow):
 
         tray.showMessage(
             "剪贴板历史已启动",
-            "按 Ctrl+Shift+V 唤出面板",
+            "按 F9 唤出面板",
             QSystemTrayIcon.Information,
             3000
         )
