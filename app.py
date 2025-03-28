@@ -1,4 +1,5 @@
 import ctypes
+import datetime
 import sys
 import keyboard
 from threading import Thread
@@ -8,7 +9,7 @@ from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
 from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 import rc_resources
-
+import psutil
 import logging
 # 配置日志记录
 logging.basicConfig(filename='app.log', level=logging.ERROR)
@@ -100,6 +101,16 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui.search_box.textChanged.connect(self.filter_history)
         # 拖动相关变量
         self.drag_pos = None
+
+        # 每 5 分钟记录一次系统资源使用情况
+        self.resource_timer = QTimer(self)
+        self.resource_timer.timeout.connect(self.log_system_resources)
+        self.resource_timer.start(5 * 60 * 1000)
+
+    def log_system_resources(self):
+        cpu_percent = psutil.cpu_percent()
+        memory_percent = psutil.virtual_memory().percent
+        logging.info(f"{datetime.datetime.now()}: CPU 使用率: {cpu_percent}%, 内存使用率: {memory_percent}%")
 
     def show_startup_notification(self):
         """增强版通知方法"""
@@ -233,6 +244,7 @@ class ClipboardHistoryApp(QMainWindow):
 
     def toggle_window(self):
         """切换窗口显示状态"""
+        logging.info(f"{datetime.datetime.now()}:toggle_window 方法被调用")
         if self.isVisible():
             self.hide()
         else:
@@ -256,6 +268,8 @@ class ClipboardHistoryApp(QMainWindow):
     #     self.raise_()
 
     def _show_at_cursor(self):
+        logging.info(f"{datetime.datetime.now()}: _show_at_cursor 方法被调用")
+
         # 设置为无边框工具窗口
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |
@@ -269,6 +283,7 @@ class ClipboardHistoryApp(QMainWindow):
         x = min(max(cursor_pos.x(), screen.x()), screen.right() - self.width())
         y = min(max(cursor_pos.y(), screen.y()), screen.bottom() - self.height())
 
+        logging.info(f"{datetime.datetime.now()}: 窗口将移动到位置: ({x}, {y})")
         self.move(int(x), int(y))
         self.show()
 
