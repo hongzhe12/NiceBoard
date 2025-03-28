@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>384</width>
-    <height>536</height>
+    <width>300</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -26,133 +26,137 @@
    <string>剪贴板历史记录</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">/* 主窗口样式 */
+   <string notr="true">/* 主窗口样式 - Windows 11 亚克力效果 */
 SimpleClipboardHistory {
-    background: #f0f2f5;
-    border-radius: 12px;
-    border: 1px solid #c1d9ff;  /* 半透明蓝色边框 */
-    padding: 10px;  /* 内边距=拖动边缘宽度 */
-}
-
-/* 可视化拖动边缘效果 */
-SimpleClipboardHistory::border {
-    border: 10px solid rgba(193, 217, 255, 0.3);  /* 半透明拖动区 */
-    border-radius: 12px;
+    background: rgba(243, 243, 243, 0.85);  /* 半透明背景 */
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0;
+    
+    /* 亚克力模糊效果 (需要代码中启用) */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 /* 标题栏样式 */
 QWidget#header {
-    height: 32px;
-    background: qlineargradient(
-        x1:0, y1:0, x2:0, y2:1,
-        stop:0 rgba(255,255,255,0.8), 
-        stop:1 rgba(240, 245, 255, 0.6)
-    );
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    border-bottom: 1px solid rgba(193, 217, 255, 0.5);
+    height: 40px;
+    background: transparent;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding-left: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* ===== 搜索框 (QQ9输入框风格) ===== */
+/* 标题文本 */
+QLabel#title_label {
+    font-family: &quot;Segoe UI Variable Display&quot;, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+}
+
+/* 搜索框 - Windows 11 风格 */
 QLineEdit#search_box {
-    border: 5px solid #cce0ff;
-    border-radius: 6px;
-    padding: 8px 12px 8px 32px;  /* 左侧留出图标空间 */
-    margin: 6px;
-    font-size: 13px;
-    background: white url(:/icons/search.svg) no-repeat 10px center;
-    selection-background-color: #b3d7ff;
-    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    padding: 8px 12px 8px 36px;
+    margin: 12px;
+    font-size: 14px;
+    background: white url(:/icons/search.svg) no-repeat 12px center;
+    background-color: rgba(255, 255, 255, 0.7);
+    color: #000000;
+    selection-background-color: #0078D4;
+    selection-color: white;
 }
 
 QLineEdit#search_box:focus {
-    border: 1px solid #66a3ff;
-    background-color: #f5f9ff;
+    border: 1px solid #0078D4;
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
-/* ===== 历史列表 (QQ9卡片风格) ===== */
+/* 历史列表 - 亚克力卡片效果 */
 QListWidget#history_list {
-    background: white;
-    border: 5px solid #d5e3ff;
-    border-radius: 8px;
-    padding: 2px;
-    margin: 0 6px 6px 6px;
+    background: transparent;
+    border: none;
+    padding: 0 12px 12px 12px;
     outline: none;
-    font-size: 13px;
+    font-size: 14px;
 }
 
-/* 列表项 */
+/* 列表项 - Windows 11 卡片样式 */
 QListWidget#history_list::item {
-    height: 36px;
+    height: 48px;
     padding: 8px 12px;
-    border-bottom: 1px solid #ebf1ff;
-    color: #333;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    color: #000000;
 }
 
 /* 悬停效果 */
 QListWidget#history_list::item:hover {
-    background: #f0f7ff;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* 选中效果 */
 QListWidget#history_list::item:selected {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                              stop:0 #d9ecff, stop:1 #c4e1ff);
-    color: #0066cc;
-    border-radius: 4px;
+    background: rgba(0, 120, 212, 0.2);
+    border: 1px solid rgba(0, 120, 212, 0.3);
 }
 
-/* ===== QQ9经典按钮 ===== */
+/* 按钮 - Windows 11 风格 */
 QPushButton#toggle_btn {
-    /* 基础样式 */
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                              stop:0 #4facfe, stop:1 #00b2ff);
+    background: rgba(0, 120, 212, 0.9);
     color: white;
     border: none;
-    border-radius: 6px;
-    padding: 10px;
-    margin: 6px;
-    font-size: 13px;
-    font-weight: bold;
-    min-height: 36px;
-    
-    /* QQ9立体效果 */
-    border-top: 1px solid rgba(255,255,255,0.5);
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    padding: 8px 16px;
+    margin: 0 12px 12px 12px;
+    font-family: &quot;Segoe UI Variable Text&quot;, sans-serif;
+    font-size: 14px;
+    min-height: 32px;
 }
 
 /* 悬停效果 */
 QPushButton#toggle_btn:hover {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                              stop:0 #5fb8ff, stop:1 #00bfff);
+    background: rgba(0, 120, 212, 1.0);
 }
 
 /* 按下效果 */
 QPushButton#toggle_btn:pressed {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                              stop:0 #3a9df4, stop:1 #0099e6);
-    padding-top: 11px;
-    padding-bottom: 9px;
-    border-top: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0, 90, 158, 0.9);
 }
 
-/* ===== 滚动条 (QQ9轻量风格) ===== */
+/* 滚动条 - Windows 11 风格 */
 QScrollBar:vertical {
     width: 8px;
     background: transparent;
-    border-left: 1px solid #e1e8f0;
+    margin-right: 2px;
 }
 
 QScrollBar::handle:vertical {
-    background: #c1d9ff;
-    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
     min-height: 30px;
 }
 
 QScrollBar::handle:vertical:hover {
-    background: #a8c8ff;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+    background: none;
+}
+
+/* 窗口阴影效果 (需要在代码中实现) */
+QGraphicsEffect#window_shadow {
+    color: rgba(0, 0, 0, 0.1);
+    blur-radius: 16px;
+    offset: 0 4px;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">

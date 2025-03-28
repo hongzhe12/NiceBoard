@@ -2,12 +2,12 @@ import ctypes
 import sys
 import keyboard
 from threading import Thread
-from PySide6.QtWidgets import QApplication, QMainWindow
-from PySide6.QtCore import QObject, Signal, QPoint, Qt
-from PySide6.QtGui import QCursor, QPainterPath, QRegion
+from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle
+from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer
+from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
 from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
-
+import rc_resources
 
 def make_window_immersive(hwnd):
     """通过 WinAPI 设置为系统级面板样式"""
@@ -52,7 +52,7 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 初始化设置
         self.setWindowTitle("剪贴板历史记录")
-        self.setFixedSize(400, 500)
+        # self.setFixedSize(400, 500)
 
         # 信号连接
         # self.ui.toggle_btn.clicked.connect(self.hide)
@@ -61,6 +61,8 @@ class ClipboardHistoryApp(QMainWindow):
         # 初始化剪贴板监控
         self.clipboard = QApplication.clipboard()
         self.clipboard.dataChanged.connect(self._on_clipboard_change)
+
+
 
         # 热键设置
         self.hotkey_manager = HotkeyManager()
@@ -77,10 +79,38 @@ class ClipboardHistoryApp(QMainWindow):
         # 设置圆角遮罩
         self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
 
+        # 显示启动通知（不需要常驻托盘图标）
+        self.show_startup_notification()
+
         # 连接搜索框信号
         self.ui.search_box.textChanged.connect(self.filter_history)
         # 拖动相关变量
         self.drag_pos = None
+
+    def show_startup_notification(self):
+        """增强版通知方法"""
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            print("系统不支持托盘通知")  # 调试用
+            return
+
+        tray = QSystemTrayIcon(self)
+
+        # 强制设置可见图标（Windows 11 需要）
+        tray.setIcon(QIcon(":/icons/clipboard.svg") if hasattr(self, 'clipboard.svg')
+                     else self.style().standardIcon(QStyle.SP_ComputerIcon))
+
+        # 必须调用show()才能发送通知
+        tray.show()
+
+        tray.showMessage(
+            "剪贴板历史已启动",
+            "按 Ctrl+Shift+V 唤出面板",
+            QSystemTrayIcon.Information,
+            3000
+        )
+
+        # 延迟销毁确保通知能弹出
+        QTimer.singleShot(4000, tray.deleteLater)
 
     def mousePressEvent(self, event):
         """鼠标按下时记录位置"""
@@ -185,6 +215,7 @@ class ClipboardHistoryApp(QMainWindow):
     def _copy_to_clipboard(self, item):
         """双击项目复制到剪贴板"""
         self.clipboard.setText(item.text())
+        self.hide()
 
     def toggle_window(self):
         """切换窗口显示状态"""
