@@ -1,0 +1,85 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/app.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": true
+  },
+  {
+   "optionDest": "console",
+   "value": false
+  },
+  {
+   "optionDest": "icon_file",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/icons/favicon.ico"
+  },
+  {
+   "optionDest": "name",
+   "value": "\u597d\u8d34\u677f"
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/models.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/rc_resources.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/sqlite3_simple_orm.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/ui_clipboard_history.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/Canway/PycharmProjects/synclipboard/resources.qrc;."
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}

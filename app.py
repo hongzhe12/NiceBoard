@@ -9,6 +9,10 @@ from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 import rc_resources
 
+import logging
+# 配置日志记录
+logging.basicConfig(filename='app.log', level=logging.ERROR)
+
 def make_window_immersive(hwnd):
     """通过 WinAPI 设置为系统级面板样式"""
     GWL_EXSTYLE = -20
@@ -42,6 +46,16 @@ class HotkeyManager(QObject):
             keyboard.wait(hotkey)
             if self._running:
                 self.hotkey_pressed.emit()
+
+    def _listen_hotkey(self, hotkey):
+        while self._running:
+            try:
+                keyboard.wait(hotkey)
+                if self._running:
+                    self.hotkey_pressed.emit()
+            except Exception as e:
+                logging.error(f"热键监听出错: {e}")
+                break
 
 
 class ClipboardHistoryApp(QMainWindow):
