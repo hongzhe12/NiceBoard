@@ -8,7 +8,7 @@ from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
 from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
-import rc_resources
+import resources_rc
 import psutil
 import logging
 # 配置日志记录
@@ -92,8 +92,8 @@ class ClipboardHistoryApp(QMainWindow):
         self._load_history()
 
         # 关键设置：无边框 + 背景透明
-        self.setWindowFlags(Qt.FramelessWindowHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
+        # self.setWindowFlags(Qt.FramelessWindowHint)
+        # self.setAttribute(Qt.WA_TranslucentBackground)
 
         # 设置圆角遮罩
         self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
@@ -192,7 +192,7 @@ class ClipboardHistoryApp(QMainWindow):
 
     def resizeEvent(self, event):
         """ 窗口大小改变时更新遮罩 """
-        self.setMaskCornerRadius(12)
+        self.setMaskCornerRadius(10)
         super().resizeEvent(event)
 
     def _load_history(self, limit=50):
@@ -275,11 +275,17 @@ class ClipboardHistoryApp(QMainWindow):
         logging.info(f"{datetime.datetime.now()}: _show_at_cursor 方法被调用")
 
         # 设置为无边框工具窗口
+        # self.setWindowFlags(
+        #     Qt.WindowStaysOnTopHint |
+        #     Qt.Tool |
+        #     Qt.FramelessWindowHint
+        # )
+
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |
-            Qt.Tool |
-            Qt.FramelessWindowHint
+            Qt.Tool
         )
+
 
         # 计算位置（多屏幕安全）
         cursor_pos = QCursor.pos()

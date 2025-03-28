@@ -26,48 +26,50 @@
    <string>剪贴板历史记录</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">/* 主窗口样式 - Windows 11 亚克力效果 */
+   <string notr="true">/* 主窗口样式 - 改进的亚克力毛玻璃效果 */
 SimpleClipboardHistory {
-    background: rgba(243, 243, 243, 0.85);  /* 半透明背景 */
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(245, 245, 245, 0.85);  /* 提高不透明度 */
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
     padding: 0;
-    
-    /* 亚克力模糊效果 (需要代码中启用) */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 /* 标题栏样式 */
 QWidget#header {
     height: 40px;
-    background: transparent;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    padding-left: 12px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.7);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding-left: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 /* 标题文本 */
 QLabel#title_label {
-    font-family: &quot;Segoe UI Variable Display&quot;, sans-serif;
+    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
     font-size: 14px;
     font-weight: 600;
-    color: #000000;
+    color: #333333;  /* 改为深色文字 */
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
-/* 搜索框 - Windows 11 风格 */
+/* 搜索框 - 改进的可读性 */
 QLineEdit#search_box {
     border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    padding: 8px 12px 8px 36px;
+    border-radius: 18px;
+    padding: 8px 15px 8px 35px;
     margin: 12px;
-    font-size: 14px;
-    background: white url(:/icons/search.svg) no-repeat 12px center;
-    background-color: rgba(255, 255, 255, 0.7);
-    color: #000000;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.7) url(:/icons/search.svg) no-repeat 12px center;
+    color: #333333;  /* 深色文字 */
     selection-background-color: #0078D4;
     selection-color: white;
+}
+
+QLineEdit#search_box::placeholder {
+    color: rgba(0, 0, 0, 0.4);  /* 更明显的占位符 */
 }
 
 QLineEdit#search_box:focus {
@@ -75,89 +77,129 @@ QLineEdit#search_box:focus {
     background-color: rgba(255, 255, 255, 0.9);
 }
 
-/* 历史列表 - 亚克力卡片效果 */
+/* 历史列表 - 提高对比度 */
 QListWidget#history_list {
-    background: transparent;
-    border: none;
-    padding: 0 12px 12px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 0;
     outline: none;
-    font-size: 14px;
+    font-size: 13px;
+    margin: 12px;
+    color: #333333;  /* 深色文字 */
 }
 
-/* 列表项 - Windows 11 卡片样式 */
+/* 列表项 */
 QListWidget#history_list::item {
-    height: 48px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    color: #000000;
+    height: 40px;
+    padding: 8px 15px;
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    color: #333333;  /* 深色文字 */
 }
 
 /* 悬停效果 */
 QListWidget#history_list::item:hover {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 
 /* 选中效果 */
 QListWidget#history_list::item:selected {
-    background: rgba(0, 120, 212, 0.2);
-    border: 1px solid rgba(0, 120, 212, 0.3);
+    background: #0078D4;
+    color: white;
+    border-radius: 4px;
 }
 
-/* 按钮 - Windows 11 风格 */
+/* 按钮 - 提高可见性 */
 QPushButton#toggle_btn {
     background: rgba(0, 120, 212, 0.9);
     color: white;
-    border: none;
-    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
     padding: 8px 16px;
-    margin: 0 12px 12px 12px;
-    font-family: &quot;Segoe UI Variable Text&quot;, sans-serif;
-    font-size: 14px;
+    margin: 12px;
+    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+    font-size: 13px;
     min-height: 32px;
 }
 
-/* 悬停效果 */
 QPushButton#toggle_btn:hover {
     background: rgba(0, 120, 212, 1.0);
 }
 
-/* 按下效果 */
 QPushButton#toggle_btn:pressed {
     background: rgba(0, 90, 158, 0.9);
 }
 
-/* 滚动条 - Windows 11 风格 */
+/* ================= 垂直滚动条 ================= */
 QScrollBar:vertical {
-    width: 8px;
-    background: transparent;
-    margin-right: 2px;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);  /* 非常淡的背景 */
+    width: 10px;  /* 滚动条宽度 */
+    margin: 2px;
+    border-radius: 0;
 }
 
 QScrollBar::handle:vertical {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    min-height: 30px;
+    background: rgba(0, 0, 0, 0.2);  /* 半透明灰色 */
+    min-height: 30px;  /* 最小高度 */
+    border-radius: 5px;
+    margin: 2px;
 }
 
 QScrollBar::handle:vertical:hover {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.3);  /* 悬停时加深 */
 }
 
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-    height: 0;
+QScrollBar::add-line:vertical, 
+QScrollBar::sub-line:vertical {
+    height: 0px;  /* 隐藏上下箭头区域 */
     background: none;
 }
 
-/* 窗口阴影效果 (需要在代码中实现) */
-QGraphicsEffect#window_shadow {
-    color: rgba(0, 0, 0, 0.1);
-    blur-radius: 16px;
-    offset: 0 4px;
-}</string>
+QScrollBar::add-page:vertical, 
+QScrollBar::sub-page:vertical {
+    background: none;  /* 滚动条背景以外的区域透明 */
+}
+
+/* ================= 水平滚动条 ================= */
+QScrollBar:horizontal {
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    height: 10px;  /* 滚动条高度 */
+    margin: 2px;
+    border-radius: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: rgba(0, 0, 0, 0.2);
+    min-width: 30px;  /* 最小宽度 */
+    border-radius: 5px;
+    margin: 2px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+QScrollBar::add-line:horizontal, 
+QScrollBar::sub-line:horizontal {
+    width: 0px;  /* 隐藏左右箭头区域 */
+    background: none;
+}
+
+QScrollBar::add-page:horizontal, 
+QScrollBar::sub-page:horizontal {
+    background: none;
+}
+
+/* ================= 滚动条角部 ================= */
+QScrollCorner {
+    background: rgba(0, 0, 0, 0.05);  /* 与滚动条背景一致 */
+}
+
+</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">

@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/app.py"
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/app.py"
   },
   {
    "optionDest": "onefile",
@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/icons/favicon.ico"
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/icons/favicon.ico"
   },
   {
    "optionDest": "name",
@@ -59,23 +59,23 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/models.py;."
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/models.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/rc_resources.py;."
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/resources_rc.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/sqlite3_simple_orm.py;."
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/sqlite3_simple_orm.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/ui_clipboard_history.py;."
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/ui_clipboard_history.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Canway/PycharmProjects/synclipboard/resources.qrc;."
+   "value": "C:/Users/hongz/PycharmProjects/synclipboard/resources.qrc;."
   }
  ],
  "nonPyinstallerOptions": {
