@@ -32,12 +32,16 @@ class HotkeyManager(QObject):
         super().__init__()
         self._running = False
 
-    def start_listen(self, hotkey='ctrl+shift+v'):
+    # def start_listen(self, hotkey='<f9>'):
+    #     if self._running:
+    #         self.stop_listen()
+    #     self._running = True
+    #     Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
+    def start_listen(self, hotkey='f9'):
         if self._running:
             self.stop_listen()
         self._running = True
         Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
-
     def stop_listen(self):
         self._running = False
         keyboard.unhook_all()
