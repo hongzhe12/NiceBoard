@@ -154,9 +154,11 @@ class ClipboardHistoryApp(QMainWindow):
 
     def delete_selected_item(self):
         """安全删除当前选中项"""
-        if selected := self.ui.history_list.currentItem():
-            if self.confirm_delete("确定删除选中的记录吗？"):
-                self._delete_item_content(selected.text())
+        # if selected := self.ui.history_list.currentItem():
+        #     if self.confirm_delete("确定删除选中的记录吗？"):
+        #         self._delete_item_content(selected.text())
+        selected = self.ui.history_list.currentItem()
+        self._delete_item_content(selected.text())
 
     def clear_all_history(self):
         """批量删除确认"""

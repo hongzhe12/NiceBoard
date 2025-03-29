@@ -22,7 +22,7 @@ class Ui_SimpleClipboardHistory(object):
     def setupUi(self, SimpleClipboardHistory):
         if not SimpleClipboardHistory.objectName():
             SimpleClipboardHistory.setObjectName(u"SimpleClipboardHistory")
-        SimpleClipboardHistory.resize(300, 400)
+        SimpleClipboardHistory.resize(300, 393)
         SimpleClipboardHistory.setMinimumSize(QSize(0, 0))
         SimpleClipboardHistory.setMaximumSize(QSize(16777215, 16777215))
         SimpleClipboardHistory.setStyleSheet(u"/* \u4e3b\u7a97\u53e3\u6837\u5f0f - \u6539\u8fdb\u7684\u4e9a\u514b\u529b\u6bdb\u73bb\u7483\u6548\u679c */\n"
@@ -221,21 +221,38 @@ class Ui_SimpleClipboardHistory(object):
 "QPushButton#btn_delete:pressed {\n"
 "    background-color: #d32f2f;\n"
 "}\n"
-"")
+"\n"
+"\n"
+"\n"
+"/* \u786e\u4fdd\u80cc\u666f\u900f\u660e */\n"
+"QListWidget {\n"
+"    background: transparent;\n"
+"    outline: none;\n"
+"}\n"
+"\n"
+"QListWidget::item {\n"
+"    background: white;\n"
+"    border-radius: 5px;\n"
+"    margin: 3px;\n"
+"}\n"
+"\n"
+"QListWidget::item:hover {\n"
+"    background: #f0f7ff;\n"
+"}")
         self.centralwidget = QWidget(SimpleClipboardHistory)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.history_list = QListWidget(self.centralwidget)
+        self.history_list.setObjectName(u"history_list")
+
+        self.gridLayout.addWidget(self.history_list, 1, 0, 1, 1)
+
         self.search_box = QLineEdit(self.centralwidget)
         self.search_box.setObjectName(u"search_box")
         self.search_box.setStyleSheet(u"")
 
         self.gridLayout.addWidget(self.search_box, 0, 0, 1, 1)
-
-        self.history_list = QListWidget(self.centralwidget)
-        self.history_list.setObjectName(u"history_list")
-
-        self.gridLayout.addWidget(self.history_list, 1, 0, 1, 1)
 
         SimpleClipboardHistory.setCentralWidget(self.centralwidget)
 

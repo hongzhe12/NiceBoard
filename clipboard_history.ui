@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>400</height>
+    <height>393</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -217,10 +217,30 @@ QPushButton#btn_delete:hover {
 QPushButton#btn_delete:pressed {
     background-color: #d32f2f;
 }
-</string>
+
+
+
+/* 确保背景透明 */
+QListWidget {
+    background: transparent;
+    outline: none;
+}
+
+QListWidget::item {
+    background: white;
+    border-radius: 5px;
+    margin: 3px;
+}
+
+QListWidget::item:hover {
+    background: #f0f7ff;
+}</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QListWidget" name="history_list"/>
+    </item>
     <item row="0" column="0">
      <widget class="QLineEdit" name="search_box">
       <property name="styleSheet">
@@ -230,9 +250,6 @@ QPushButton#btn_delete:pressed {
        <string>搜索剪贴板历史...</string>
       </property>
      </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QListWidget" name="history_list"/>
     </item>
    </layout>
   </widget>
