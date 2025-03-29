@@ -1,46 +1,13 @@
-import sys
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem
-from PySide6.QtGui import QPixmap, QClipboard
-from PySide6.QtCore import Qt
+# 获取当前设置
+from models import get_settings
 
+settings = get_settings()
 
-class ClipboardImageHistory(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("剪贴板图片历史记录")
-        self.setGeometry(100, 100, 400, 300)
+# 访问具体设置项
+hotkey = settings.hotkey          # 获取热键组合（默认 'Alt+X'）
+max_history = settings.max_history  # 获取最大历史记录数（默认 50）
+auto_start = settings.auto_start   # 获取开机自启状态（默认 False）
 
-        layout = QVBoxLayout()
-
-        self.list_widget = QListWidget()
-        layout.addWidget(self.list_widget)
-
-        self.clear_button = QPushButton("清空历史记录")
-        self.clear_button.clicked.connect(self.clear_history)
-        layout.addWidget(self.clear_button)
-
-        self.setLayout(layout)
-
-        self.clipboard = QApplication.clipboard()
-        self.clipboard.changed.connect(self.on_clipboard_change)
-
-    def on_clipboard_change(self, mode):
-        if mode == QClipboard.Clipboard:
-            mime_data = self.clipboard.mimeData()
-            if mime_data.hasImage():
-                image = self.clipboard.image()
-                pixmap = QPixmap.fromImage(image)
-                item = QListWidgetItem()
-                scaled_pixmap = pixmap.scaled(100, 100, Qt.KeepAspectRatio)
-                item.setData(Qt.DecorationRole, scaled_pixmap)
-                self.list_widget.addItem(item)
-
-    def clear_history(self):
-        self.list_widget.clear()
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = ClipboardImageHistory()
-    window.show()
-    sys.exit(app.exec())
+print(f"当前热键: {hotkey}")
+print(f"最大历史记录数: {max_history}")
+print(f"开机自启: {'开启' if auto_start else '关闭'}")

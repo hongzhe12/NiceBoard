@@ -3,26 +3,19 @@ import datetime
 import sys
 import keyboard
 from threading import Thread
-from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
 from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
-from models import ClipboardItem, Session
+from models import ClipboardItem, Session, get_settings, auto_clean_history
+from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 import resources_rc
 import psutil
 import logging
+
 # 配置日志记录
 logging.basicConfig(filename='app.log', level=logging.INFO)
 
-def make_window_immersive(hwnd):
-    """通过 WinAPI 设置为系统级面板样式"""
-    GWL_EXSTYLE = -20
-    WS_EX_TOOLWINDOW = 0x00000080
-    WS_EX_NOACTIVATE = 0x08000000
-
-    old_style = ctypes.windll.user32.GetWindowLongA(hwnd, GWL_EXSTYLE)
-    new_style = old_style | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
-    ctypes.windll.user32.SetWindowLongA(hwnd, GWL_EXSTYLE, new_style)
 
 class HotkeyManager(QObject):
     """全局热键管理"""
@@ -32,16 +25,12 @@ class HotkeyManager(QObject):
         super().__init__()
         self._running = False
 
-    # def start_listen(self, hotkey='<f9>'):
-    #     if self._running:
-    #         self.stop_listen()
-    #     self._running = True
-    #     Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
     def start_listen(self, hotkey='alt+x'):
         if self._running:
             self.stop_listen()
         self._running = True
         Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
+
     def stop_listen(self):
         self._running = False
         keyboard.unhook_all()
@@ -69,37 +58,36 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui = Ui_SimpleClipboardHistory()
         self.ui.setupUi(self)
 
+        self.settings_window = None  # 添加设置窗口引用
+        self.tray_icon = None  # 托盘图标
         # 初始化设置
         self.setWindowTitle("剪贴板历史记录")
         # self.setFixedSize(400, 500)
 
-        # 信号连接
-        # self.ui.toggle_btn.clicked.connect(self.hide)
+        # 双击复制到粘贴板
         self.ui.history_list.itemDoubleClicked.connect(self._copy_to_clipboard)
 
         # 初始化剪贴板监控
         self.clipboard = QApplication.clipboard()
-        self.clipboard.dataChanged.connect(self._on_clipboard_change)
+        self.clipboard.dataChanged.connect(self._on_clipboard_change) # 咱铁板
 
-
+        # 获取当前设置
+        settings = get_settings()
+        # 访问具体设置项
+        hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
+        max_history = settings.max_history  # 获取最大历史记录数（默认 50）
+        auto_start = settings.auto_start  # 获取开机自启状态（默认 False）
 
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
-        self.hotkey_manager.start_listen()
+        self.hotkey_manager.start_listen(hotkey = hotkey)
 
         # 加载历史记录
         self._load_history()
 
-        # 关键设置：无边框 + 背景透明
-        # self.setWindowFlags(Qt.FramelessWindowHint)
-        # self.setAttribute(Qt.WA_TranslucentBackground)
-
         # 设置圆角遮罩
         self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
-
-        # 显示启动通知（不需要常驻托盘图标）
-        self.show_startup_notification()
 
         # 连接搜索框信号
         self.ui.search_box.textChanged.connect(self.filter_history)
@@ -113,6 +101,90 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 新增删除功能配置
         self.setup_delete_functionality()
+
+        # 添加系统托盘图标
+        self.setup_system_tray()
+
+        # 显示启动通知（不需要常驻托盘图标）
+        self.show_startup_notification()
+
+    def setup_system_tray(self):
+        """创建系统托盘图标"""
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(self.style().standardIcon(QStyle.SP_ComputerIcon))
+        self.tray_icon.setToolTip("好贴板 plus")
+        tray_menu = QMenu()
+
+        # 添加新菜单项
+        settings_action = tray_menu.addAction("设置")
+        settings_action.triggered.connect(self.show_settings)
+        tray_menu.addSeparator()
+
+        # 原有菜单项
+        show_action = tray_menu.addAction("显示主窗口")
+        show_action.triggered.connect(self.show_normal)
+
+        history_action = tray_menu.addAction("查看剪贴板历史")
+        history_action.triggered.connect(self.toggle_window)
+
+        tray_menu.addSeparator()
+        quit_action = tray_menu.addAction("退出")
+        quit_action.triggered.connect(self.quit_application)
+
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.activated.connect(self.on_tray_activated)
+        self.tray_icon.show()
+
+    def on_tray_activated(self, reason):
+        """处理托盘图标点击事件（更健壮版）"""
+        if reason == QSystemTrayIcon.Trigger:  # 左键单击
+            settings_window = getattr(self, 'settings_window', None)  # 安全获取属性
+            if settings_window is not None and settings_window.isVisible():
+                settings_window.hide()  # 隐藏窗口
+            else:
+                self.show_settings()  # 显示或创建窗口
+                if hasattr(self, 'settings_window') and self.settings_window is not None:
+                    self.settings_window.raise_()  # 确保窗口前置
+                    self.settings_window.activateWindow()  # 激活窗口
+
+    def show_settings(self):
+        """100%能显示的设置窗口方法"""
+        # 如果窗口存在但隐藏了
+        if self.settings_window and self.settings_window.isHidden():
+            self.settings_window.showNormal()
+            return
+
+        # 全新创建窗口
+        self.settings_window = SettingsWindow()  # 不设置parent
+
+        # 关键设置（必须）
+        self.settings_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.settings_window.setWindowModality(Qt.ApplicationModal)
+
+        # 窗口位置计算
+        screen_geo = QApplication.primaryScreen().availableGeometry()
+        x = (screen_geo.width() - self.settings_window.width()) // 2
+        y = (screen_geo.height() - self.settings_window.height()) // 2
+
+        # 显示窗口（三步缺一不可）
+        self.settings_window.move(x, y)
+        self.settings_window.show()
+        self.settings_window.activateWindow()
+
+        # 绑定关闭事件
+        self.settings_window.destroyed.connect(lambda: setattr(self, 'settings_window', None))
+
+
+    def show_normal(self):
+        """正常显示窗口"""
+        self.show()
+        self.activateWindow()
+        self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
+
+    def quit_application(self):
+        """安全退出应用"""
+        self.tray_icon.hide()  # 先隐藏托盘图标
+        QApplication.quit()
 
     def setup_delete_functionality(self):
         """初始化删除相关功能"""
@@ -154,9 +226,6 @@ class ClipboardHistoryApp(QMainWindow):
 
     def delete_selected_item(self):
         """安全删除当前选中项"""
-        # if selected := self.ui.history_list.currentItem():
-        #     if self.confirm_delete("确定删除选中的记录吗？"):
-        #         self._delete_item_content(selected.text())
         selected = self.ui.history_list.currentItem()
         self._delete_item_content(selected.text())
 
@@ -221,24 +290,16 @@ class ClipboardHistoryApp(QMainWindow):
             print("系统不支持托盘通知")  # 调试用
             return
 
-        tray = QSystemTrayIcon(self)
-
-        # 强制设置可见图标（Windows 11 需要）
-        tray.setIcon(QIcon(":/icons/clipboard.svg") if hasattr(self, 'clipboard.svg')
-                     else self.style().standardIcon(QStyle.SP_ComputerIcon))
-
         # 必须调用show()才能发送通知
-        tray.show()
+        self.tray_icon.show()
 
-        tray.showMessage(
+        self.tray_icon.showMessage(
             "剪贴板历史已启动",
-            "按 F9 唤出面板",
+            "按 alt+x 唤出面板",
             QSystemTrayIcon.Information,
             3000
         )
 
-        # 延迟销毁确保通知能弹出
-        QTimer.singleShot(4000, tray.deleteLater)
 
     def mousePressEvent(self, event):
         """鼠标按下时记录位置"""
@@ -251,8 +312,6 @@ class ClipboardHistoryApp(QMainWindow):
         """鼠标移动时拖动窗口"""
         if self.drag_pos and event.buttons() & Qt.LeftButton:
             self.move(self.pos() + event.globalPos() - self.drag_pos)
-            # self.drag_pos = event.globalPos()
-
             self.drag_pos = event.globalPosition().toPoint()
 
     def mouseMoveEvent(self, event):
@@ -342,8 +401,33 @@ class ClipboardHistoryApp(QMainWindow):
 
     def _copy_to_clipboard(self, item):
         """双击项目复制到剪贴板"""
-        self.clipboard.setText(item.text())
+        # 1. 复制选中内容到系统剪贴板
+        selected_text = item.text()
+        self.clipboard.setText(selected_text)
+
+        # 2. 自动清理历史记录
+        auto_clean_history()  # 这会删除超出限制的旧记录
+
+        # 3. 刷新UI显示
+        self._refresh_history_list()  # 新增的方法，用于刷新列表
+
+        # 4. 隐藏窗口
         self.hide()
+
+    def _refresh_history_list(self):
+        """刷新历史记录列表显示"""
+        # 清空当前列表
+        self.ui.history_list.clear()
+
+        # 从数据库重新加载记录
+        session = Session()
+        try:
+            items = session.query(ClipboardItem).order_by(ClipboardItem.timestamp.desc()).all()
+            for item in items:
+                list_item = QListWidgetItem(item.content)
+                self.ui.history_list.addItem(list_item)
+        finally:
+            session.close()
 
     def toggle_window(self):
         """切换窗口显示状态"""
@@ -353,38 +437,13 @@ class ClipboardHistoryApp(QMainWindow):
         else:
             self._show_at_cursor()
 
-    # def _show_at_cursor(self):
-    #     """在鼠标位置显示窗口"""
-    #     cursor_pos = QCursor.pos()
-    #     screen = QApplication.primaryScreen().availableGeometry()
-    #
-    #     # 计算窗口位置（防止超出屏幕）
-    #     x = min(max(cursor_pos.x(), screen.left()),
-    #             screen.right() - self.width())
-    #     y = min(max(cursor_pos.y(), screen.top()),
-    #             screen.bottom() - self.height())
-    #
-    #     self.move(QPoint(x, y))
-    #     self.show()
-    #     make_window_immersive(int(self.winId()))  # 传入窗口句柄
-    #     self.activateWindow()
-    #     self.raise_()
-
     def _show_at_cursor(self):
         logging.info(f"{datetime.datetime.now()}: _show_at_cursor 方法被调用")
-
-        # 设置为无边框工具窗口
-        # self.setWindowFlags(
-        #     Qt.WindowStaysOnTopHint |
-        #     Qt.Tool |
-        #     Qt.FramelessWindowHint
-        # )
-
+        # 设置窗口属性
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |
             Qt.Tool
         )
-
 
         # 计算位置（多屏幕安全）
         cursor_pos = QCursor.pos()
@@ -401,9 +460,16 @@ class ClipboardHistoryApp(QMainWindow):
         self.setAttribute(Qt.WA_ShowWithoutActivating, True)
 
     def closeEvent(self, event):
-        """关闭时清理资源"""
-        self.hotkey_manager.stop_listen()
-        super().closeEvent(event)
+        """重写关闭事件（点击X时最小化到托盘）"""
+        # if self.settings_window:
+        #     self.settings_window.close()
+
+        if self.tray_icon.isVisible():
+            self.hide()
+            event.ignore()
+        else:
+            self.hotkey_manager.stop_listen()
+            super().closeEvent(event)
 
 
 if __name__ == "__main__":
