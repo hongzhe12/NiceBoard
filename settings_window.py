@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QCheckBox, QSpinBox, QFormLayout, QMessageBox, QLineEdit
 )
 
+from auto_start import enable_auto_start, disable_auto_start
 from models import get_settings, update_settings
 
 
@@ -31,7 +32,7 @@ class SettingsWindow(QWidget):
         # 替换 QSpinBox 为 QLineEdit
         self.history_limit = QLineEdit()
         self.history_limit.setPlaceholderText("输入10-500的整数")  # 提示文本
-        self.history_limit.setValidator(QIntValidator(1, 500))  # 限制输入范围
+        self.history_limit.setValidator(QIntValidator(1, 100000))  # 限制输入范围
         form_layout.addRow("最大记录数:", self.history_limit)
 
         # 自动启动
@@ -134,24 +135,21 @@ class SettingsWindow(QWidget):
         print("热键被触发！")
         # 在这里执行你的功能，例如显示/隐藏窗口
 
-    # def save_settings(self):
-    #     """保存设置到配置文件"""
-    #     # 这里添加实际保存逻辑
-    #     update_settings(
-    #         hotkey=self.hotkey_edit.text(),
-    #         max_history=self.history_limit.value(),
-    #         auto_start=self.auto_start.isChecked()
-    #     )
-    #     QMessageBox.information(self, "成功", "设置已保存")
-    #     self.close()
 
     def save_settings(self):
         """保存设置"""
         try:
+            # 校验最大记录数
             max_history = int(self.history_limit.text())  # 获取输入值
-            if not 1 <= max_history <= 500:
-                QMessageBox.warning(self, "错误", "请输入10-500之间的整数")
+            if not 1 <= max_history <= 100000:
+                QMessageBox.warning(self, "错误", "请输入1-100000之间的整数")
                 return
+
+            # 检查开关机配置
+            if self.auto_start.isChecked():
+                enable_auto_start()
+            else:
+                disable_auto_start()
 
             update_settings(
                 max_history=max_history,
