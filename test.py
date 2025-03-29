@@ -1,13 +1,12 @@
-# 获取当前设置
-from models import get_settings
+import os
+from pathlib import Path
+from sqlalchemy import create_engine
 
-settings = get_settings()
+# 获取数据库路径（返回字符串）
+def get_db_path():
+    appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
+    appdata_dir.mkdir(exist_ok=True)
+    return str(appdata_dir / 'clipboard_history.db')  # 关键修改：转换为字符串
 
-# 访问具体设置项
-hotkey = settings.hotkey          # 获取热键组合（默认 'Alt+X'）
-max_history = settings.max_history  # 获取最大历史记录数（默认 50）
-auto_start = settings.auto_start   # 获取开机自启状态（默认 False）
 
-print(f"当前热键: {hotkey}")
-print(f"最大历史记录数: {max_history}")
-print(f"开机自启: {'开启' if auto_start else '关闭'}")
+print(get_db_path())

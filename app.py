@@ -1,5 +1,5 @@
-import ctypes
 import datetime
+import os
 import sys
 import keyboard
 from threading import Thread
@@ -13,9 +13,17 @@ import resources_rc
 import psutil
 import logging
 
-# 配置日志记录
-logging.basicConfig(filename='app.log', level=logging.INFO)
+# 获取当前用户的应用数据目录
+log_dir = os.path.join(os.getenv('APPDATA'), 'YourAppName')
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'app.log')
 
+# 配置日志记录
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 class HotkeyManager(QObject):
     """全局热键管理"""
@@ -284,7 +292,7 @@ class ClipboardHistoryApp(QMainWindow):
     def log_system_resources(self):
         cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
-        logging.info(f"{datetime.datetime.now()}: CPU 使用率: {cpu_percent}%, 内存使用率: {memory_percent}%")
+        logging.info(f" CPU 使用率: {cpu_percent}%, 内存使用率: {memory_percent}%")
 
     def show_startup_notification(self):
         """增强版通知方法"""
@@ -433,14 +441,14 @@ class ClipboardHistoryApp(QMainWindow):
 
     def toggle_window(self):
         """切换窗口显示状态"""
-        logging.info(f"{datetime.datetime.now()}:toggle_window 方法被调用")
+        logging.info(f"toggle_window 方法被调用")
         if self.isVisible():
             self.hide()
         else:
             self._show_at_cursor()
 
     def _show_at_cursor(self):
-        logging.info(f"{datetime.datetime.now()}: _show_at_cursor 方法被调用")
+        logging.info(f" _show_at_cursor 方法被调用")
         # 设置窗口属性
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |
@@ -453,7 +461,7 @@ class ClipboardHistoryApp(QMainWindow):
         x = min(max(cursor_pos.x(), screen.x()), screen.right() - self.width())
         y = min(max(cursor_pos.y(), screen.y()), screen.bottom() - self.height())
 
-        logging.info(f"{datetime.datetime.now()}: 窗口将移动到位置: ({x}, {y})")
+        logging.info(f" 窗口将移动到位置: ({x}, {y})")
         self.move(int(x), int(y))
         self.show()
 

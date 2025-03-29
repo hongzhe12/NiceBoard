@@ -10,6 +10,8 @@ from auto_start import enable_auto_start, disable_auto_start
 from models import get_settings, update_settings
 
 
+
+
 class SettingsWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)

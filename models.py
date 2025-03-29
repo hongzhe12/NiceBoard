@@ -4,9 +4,23 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import atexit
 
+
+import os
+from pathlib import Path
+from sqlalchemy import create_engine
+
+# 获取数据库路径（返回字符串）
+def get_db_path():
+    appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
+    appdata_dir.mkdir(exist_ok=True)
+    return str(appdata_dir / 'clipboard_history.db')  # 关键修改：转换为字符串
+
+# 获取数据库文件路径
+file_path = get_db_path()
+
 # 初始化数据库
 Base = declarative_base()
-engine = create_engine('sqlite:///clipboard_history.db', echo=False)
+engine = create_engine(f'sqlite:///{file_path}', echo=False)  # 使用f-string确保路径格式正确
 Session = sessionmaker(bind=engine)
 
 
