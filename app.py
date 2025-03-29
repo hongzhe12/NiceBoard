@@ -1,4 +1,3 @@
-import datetime
 import os
 import sys
 import keyboard
@@ -14,7 +13,7 @@ import psutil
 import logging
 
 # 获取当前用户的应用数据目录
-log_dir = os.path.join(os.getenv('APPDATA'), 'YourAppName')
+log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
 
@@ -83,6 +82,7 @@ class ClipboardHistoryApp(QMainWindow):
         settings = get_settings()
         # 访问具体设置项
         hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
+        self.__hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
         max_history = settings.max_history  # 获取最大历史记录数（默认 50）
         auto_start = settings.auto_start  # 获取开机自启状态（默认 False）
 
@@ -119,7 +119,7 @@ class ClipboardHistoryApp(QMainWindow):
     def setup_system_tray(self):
         """创建系统托盘图标"""
         self.tray_icon = QSystemTrayIcon(self)
-        # self.tray_icon.setIcon(self.style().standardIcon(QStyle.SP_ComputerIcon))
+
         self.tray_icon.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
         self.tray_icon.setIcon(QIcon(":/icons/clipboard.svg"))
         self.tray_icon.setToolTip("好贴板 plus")
@@ -304,8 +304,8 @@ class ClipboardHistoryApp(QMainWindow):
         self.tray_icon.show()
 
         self.tray_icon.showMessage(
-            "剪贴板历史已启动",
-            "按 alt+x 唤出面板",
+            "好贴板已启动",
+            f"按 {str(self.__hotkey)} 唤出面板",
             QSystemTrayIcon.Information,
             3000
         )
@@ -495,6 +495,7 @@ if __name__ == "__main__":
             padding: 8px;
         }
     """)
+    app.setApplicationName("好贴板")  # 设置应用程序名称
 
     window = ClipboardHistoryApp()
     sys.exit(app.exec())

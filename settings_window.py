@@ -152,13 +152,19 @@ class SettingsWindow(QWidget):
                 enable_auto_start()
             else:
                 disable_auto_start()
-
+            # 更新设置
             update_settings(
                 max_history=max_history,
                 hotkey=self.hotkey_edit.text(),
                 auto_start=self.auto_start.isChecked()
             )
-            QMessageBox.information(self, "成功", "设置已保存")
+            # 是否更新了热键
+            if self.hotkey_edit.text() !='Alt+X' and self.hotkey_edit.text() !='alt+x':
+
+                QMessageBox.information(self, "提示", "热键修改后，需要重启好贴板！")
+            else:
+                QMessageBox.warning(self, "成功", "设置已保存！")
+
             self.hide()
         except ValueError:
             QMessageBox.warning(self, "错误", "请输入有效数字")
