@@ -424,6 +424,48 @@ class ClipboardHistoryApp(QMainWindow):
         # 4. 隐藏窗口
         self.hide()
 
+    def _copy_to_clipboard(self, item):
+        """双击项目：复制到剪贴板 + 自动粘贴到当前输入框 (Windows)"""
+        try:
+            # 1. 复制选中内容到剪贴板
+            selected_text = item.text()
+            self.clipboard.setText(selected_text)
+
+            # 2. 自动清理历史记录
+            auto_clean_history()
+
+            # 3. 隐藏窗口（先隐藏再粘贴，避免干扰）
+            self.hide()
+
+            # 4. 确保剪贴板内容已更新（短暂延迟）
+            QTimer.singleShot(100, lambda: self._paste_to_active_window(selected_text))
+
+        except Exception as e:
+            logging.error(f"复制粘贴失败: {e}")
+
+    def _paste_to_active_window(self, text):
+        """实际执行粘贴操作的辅助方法"""
+        try:
+            import keyboard
+            # 保存当前剪贴板内容（备用恢复）
+            original_clipboard = self.clipboard.text()
+
+            # 设置要粘贴的文本
+            self.clipboard.setText(text)
+
+            # 模拟Ctrl+V（包含按下和释放两个动作）
+            keyboard.press('ctrl')
+            keyboard.press_and_release('v')
+            keyboard.release('ctrl')
+
+            # 短暂延迟后恢复原剪贴板内容（可选）
+            QTimer.singleShot(200, lambda: self.clipboard.setText(original_clipboard))
+
+        except Exception as e:
+            logging.error(f"自动粘贴失败: {e}")
+            # 如果失败，至少确保文本已在剪贴板中
+            self.clipboard.setText(text)
+
     def _refresh_history_list(self):
         """刷新历史记录列表显示"""
         # 清空当前列表
