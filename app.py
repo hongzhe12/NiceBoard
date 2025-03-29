@@ -3,8 +3,8 @@ import datetime
 import sys
 import keyboard
 from threading import Thread
-from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle
-from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox
+from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
 from models import ClipboardItem, Session
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
@@ -37,7 +37,7 @@ class HotkeyManager(QObject):
     #         self.stop_listen()
     #     self._running = True
     #     Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
-    def start_listen(self, hotkey='f9'):
+    def start_listen(self, hotkey='alt+x'):
         if self._running:
             self.stop_listen()
         self._running = True
@@ -110,6 +110,103 @@ class ClipboardHistoryApp(QMainWindow):
         self.resource_timer = QTimer(self)
         self.resource_timer.timeout.connect(self.log_system_resources)
         self.resource_timer.start(5 * 60 * 1000)
+
+        # 新增删除功能配置
+        self.setup_delete_functionality()
+
+    def setup_delete_functionality(self):
+        """初始化删除相关功能"""
+        # 右键菜单
+        self.ui.history_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.history_list.customContextMenuRequested.connect(self.show_context_menu)
+
+        # 键盘支持
+        self.ui.history_list.installEventFilter(self)
+
+        # 删除按钮信号（如果UI中有）
+        if hasattr(self.ui, 'btn_delete'):
+            self.ui.btn_delete.clicked.connect(self.delete_selected_item)
+
+    def eventFilter(self, source, event):
+        """监听键盘事件"""
+        if (event.type() == QEvent.KeyPress and
+                source is self.ui.history_list and
+                event.key() == Qt.Key_Delete):
+            self.delete_selected_item()
+            return True
+        return super().eventFilter(source, event)
+
+    def show_context_menu(self, pos):
+        """智能右键菜单"""
+        menu = QMenu()
+        actions = {
+            "删除": self.delete_selected_item,
+            "清空历史": self.clear_all_history,
+            # "复制内容": lambda: self._copy_to_clipboard(self.ui.history_list.itemAt(pos))
+            "复制内容": lambda: self.clipboard.setText(self.ui.history_list.itemAt(pos).text())
+        }
+
+        for text, callback in actions.items():
+            action = menu.addAction(text)
+            action.triggered.connect(callback)
+
+        menu.exec(self.ui.history_list.mapToGlobal(pos))
+
+    def delete_selected_item(self):
+        """安全删除当前选中项"""
+        if selected := self.ui.history_list.currentItem():
+            if self.confirm_delete("确定删除选中的记录吗？"):
+                self._delete_item_content(selected.text())
+
+    def clear_all_history(self):
+        """批量删除确认"""
+        if self.confirm_delete("确定清空所有剪贴板历史吗？", dangerous=True):
+            session = Session()
+            try:
+                session.query(ClipboardItem).delete()
+                session.commit()
+                self.ui.history_list.clear()
+            except Exception as e:
+                session.rollback()
+                self.show_error("清空失败", str(e))
+            finally:
+                session.close()
+
+    def _delete_item_content(self, content):
+        """执行数据库删除"""
+        session = Session()
+        try:
+            session.query(ClipboardItem) \
+                .filter(ClipboardItem.content == content) \
+                .delete(synchronize_session=False)
+            session.commit()
+            self._remove_from_list(content)
+        except Exception as e:
+            session.rollback()
+            self.show_error("删除失败", str(e))
+        finally:
+            session.close()
+
+    def _remove_from_list(self, content):
+        """同步更新UI列表"""
+        for i in range(self.ui.history_list.count()):
+            if self.ui.history_list.item(i).text() == content:
+                self.ui.history_list.takeItem(i)
+                break
+
+    # 以下为工具方法
+    def confirm_delete(self, message, dangerous=False):
+        """通用确认对话框"""
+        box = QMessageBox(self)
+        box.setWindowTitle("确认操作")
+        box.setIcon(QMessageBox.Warning if dangerous else QMessageBox.Question)
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        box.setText(message)
+        return box.exec() == QMessageBox.Yes
+
+    def show_error(self, title, message):
+        """错误提示"""
+        QMessageBox.critical(self, title, message)
 
     def log_system_resources(self):
         cpu_percent = psutil.cpu_percent()

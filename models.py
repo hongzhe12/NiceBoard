@@ -1,3 +1,5 @@
+from PySide6.QtCore import QByteArray, QIODevice, QBuffer
+from PySide6.QtWidgets import QApplication
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker

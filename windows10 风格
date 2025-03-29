@@ -1,32 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>SimpleClipboardHistory</class>
- <widget class="QMainWindow" name="SimpleClipboardHistory">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>300</width>
-    <height>400</height>
-   </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>16777215</height>
-   </size>
-  </property>
-  <property name="windowTitle">
-   <string>剪贴板历史记录</string>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">/* 主窗口样式 - 改进的亚克力毛玻璃效果 */
+/* 主窗口样式 - 改进的亚克力毛玻璃效果 */
 SimpleClipboardHistory {
     background: rgba(245, 245, 245, 0.85);  /* 提高不透明度 */
     border-radius: 12px;
@@ -48,7 +20,7 @@ QWidget#header {
 
 /* 标题文本 */
 QLabel#title_label {
-    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: #333333;  /* 改为深色文字 */
@@ -217,26 +189,3 @@ QPushButton#btn_delete:hover {
 QPushButton#btn_delete:pressed {
     background-color: #d32f2f;
 }
-</string>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QLineEdit" name="search_box">
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
-      <property name="placeholderText">
-       <string>搜索剪贴板历史...</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QListWidget" name="history_list"/>
-    </item>
-   </layout>
-  </widget>
- </widget>
- <resources/>
- <connections/>
-</ui>
