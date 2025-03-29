@@ -1,5 +1,3 @@
----
-
 ### **程序名称**：好贴板（Good Clipboard / 好贴板）  
 **开发框架**：Python + PySide6（现代化 Qt 界面）  
 
