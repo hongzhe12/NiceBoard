@@ -2,8 +2,8 @@ import keyboard
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton,
-    QCheckBox, QSpinBox, QFormLayout, QMessageBox, QLineEdit
+    QWidget, QVBoxLayout,  QPushButton,
+    QCheckBox,  QFormLayout, QMessageBox, QLineEdit
 )
 
 from auto_start import enable_auto_start, disable_auto_start
@@ -160,6 +160,14 @@ class SettingsWindow(QWidget):
             self.hide()
         except ValueError:
             QMessageBox.warning(self, "错误", "请输入有效数字")
+
+
+    def closeEvent(self, event):
+        """重写关闭事件（点击X时最小化到托盘）"""
+        if self.isVisible():
+            self.hide()
+            event.ignore()
+
 
 
 

@@ -111,7 +111,9 @@ class ClipboardHistoryApp(QMainWindow):
     def setup_system_tray(self):
         """创建系统托盘图标"""
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(self.style().standardIcon(QStyle.SP_ComputerIcon))
+        # self.tray_icon.setIcon(self.style().standardIcon(QStyle.SP_ComputerIcon))
+        self.tray_icon.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
+        self.tray_icon.setIcon(QIcon(":/icons/clipboard.svg"))
         self.tray_icon.setToolTip("好贴板 plus")
         tray_menu = QMenu()
 
@@ -461,8 +463,8 @@ class ClipboardHistoryApp(QMainWindow):
 
     def closeEvent(self, event):
         """重写关闭事件（点击X时最小化到托盘）"""
-        # if self.settings_window:
-        #     self.settings_window.close()
+        if self.settings_window:
+            self.settings_window.close()
 
         if self.tray_icon.isVisible():
             self.hide()
