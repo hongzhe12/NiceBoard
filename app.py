@@ -1,7 +1,6 @@
 import os
 import sys
 import keyboard
-from threading import Thread
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
 from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
