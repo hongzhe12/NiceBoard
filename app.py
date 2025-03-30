@@ -32,11 +32,11 @@ class HotkeyManager(QObject):
         super().__init__()
         self._running = False
 
-    def start_listen(self, hotkey='alt+x'):
+    def start_listen(self, hotkey='ctrl+]'):
         if self._running:
             self.stop_listen()
         self._running = True
-        Thread(target=self._listen_hotkey, args=(hotkey,), daemon=True).start()
+        keyboard.add_hotkey(hotkey, lambda: self.hotkey_pressed.emit())
 
     def stop_listen(self):
         self._running = False
@@ -44,15 +44,11 @@ class HotkeyManager(QObject):
 
     def _listen_hotkey(self, hotkey):
         while self._running:
-            keyboard.wait(hotkey)
-            if self._running:
-                self.hotkey_pressed.emit()
-
-    def _listen_hotkey(self, hotkey):
-        while self._running:
             try:
+                logging.info(f"等待热键 {hotkey} 按下...")
                 keyboard.wait(hotkey)
                 if self._running:
+                    logging.info(f"热键 {hotkey} 被触发")
                     self.hotkey_pressed.emit()
             except Exception as e:
                 logging.error(f"热键监听出错: {e}")
@@ -153,7 +149,7 @@ class ClipboardHistoryApp(QMainWindow):
                 settings_window.hide()  # 隐藏窗口
             else:
                 self.show_settings()  # 显示或创建窗口
-                if hasattr(self, 'settings_window') and self.settings_window is not None:
+                if self.settings_window and self.settings_window.isVisible():
                     self.settings_window.raise_()  # 确保窗口前置
                     self.settings_window.activateWindow()  # 激活窗口
 
@@ -316,12 +312,6 @@ class ClipboardHistoryApp(QMainWindow):
         if event.button() == Qt.LeftButton:
             # self.drag_pos = event.globalPos()
             # 新版写法
-            self.drag_pos = event.globalPosition().toPoint()
-
-    def mouseMoveEvent(self, event):
-        """鼠标移动时拖动窗口"""
-        if self.drag_pos and event.buttons() & Qt.LeftButton:
-            self.move(self.pos() + event.globalPos() - self.drag_pos)
             self.drag_pos = event.globalPosition().toPoint()
 
     def mouseMoveEvent(self, event):
