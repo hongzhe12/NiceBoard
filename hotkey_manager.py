@@ -3,31 +3,41 @@ from pynput.keyboard import Key, KeyCode, Listener
 
 
 class HotkeyManager(QObject):
-    """简化版全局热键管理"""
+    """改进版全局热键管理，支持按住修饰键再按其他键触发"""
 
     hotkey_pressed = Signal()
 
     def __init__(self):
         super().__init__()
         self._listener = None
-        self._target_keys = set()
-        self._pressed_keys = set()
+        self._modifier_keys = set()  # 修饰键(如Ctrl、Alt等)
+        self._trigger_key = None  # 触发键(如字母键)
+        self._modifiers_pressed = set()
 
     def start_listen(self, hotkey: str = 'ctrl+]') -> None:
         """启动热键监听"""
         self.stop_listen()  # 确保先停止现有监听
 
         # 解析热键组合
-        self._target_keys.clear()
-        for key in hotkey.split('+'):
+        self._modifier_keys.clear()
+        self._trigger_key = None
+        keys = hotkey.split('+')
+
+        for key in keys[:-1]:  # 前面的都是修饰键
             key = key.strip().lower()
             try:
-                # 尝试作为特殊键(如ctrl/shift等)
-                self._target_keys.add(getattr(Key, key))
+                self._modifier_keys.add(getattr(Key, key))
             except AttributeError:
-                # 作为普通字符键
                 if len(key) == 1:
-                    self._target_keys.add(KeyCode.from_char(key))
+                    self._modifier_keys.add(KeyCode.from_char(key))
+
+        # 最后一个键是触发键
+        trigger = keys[-1].strip().lower()
+        try:
+            self._trigger_key = getattr(Key, trigger)
+        except AttributeError:
+            if len(trigger) == 1:
+                self._trigger_key = KeyCode.from_char(trigger)
 
         # 启动监听器
         self._listener = Listener(
@@ -41,18 +51,21 @@ class HotkeyManager(QObject):
         if self._listener:
             self._listener.stop()
             self._listener = None
-        self._pressed_keys.clear()
+        self._modifiers_pressed.clear()
 
     def _on_press(self, key) -> None:
         """处理按键按下事件"""
-        self._pressed_keys.add(key)
-        if self._pressed_keys == self._target_keys:
+        if key in self._modifier_keys:
+            self._modifiers_pressed.add(key)
+        elif key == self._trigger_key and self._modifiers_pressed == self._modifier_keys:
             self.hotkey_pressed.emit()
 
     def _on_release(self, key) -> None:
         """处理按键释放事件"""
-        if key in self._pressed_keys:
-            self._pressed_keys.remove(key)
+        if key in self._modifiers_pressed:
+            self._modifiers_pressed.remove(key)
+        elif key == self._trigger_key:
+            pass  # 触发键释放不需要特殊处理
 
     def __del__(self):
         """析构时自动清理"""
