@@ -1,21 +1,21 @@
+import logging
 import os
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
-from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer, QEvent
+
+from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
+from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
 
 from hotkey_manager import HotkeyManager
 from models import ClipboardItem, Session, get_settings, auto_clean_history
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
-import resources_rc
-import psutil
-import logging
 
 # 获取当前用户的应用数据目录
 log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
+import resources_rc
 
 # 配置日志记录
 logging.basicConfig(
@@ -37,7 +37,6 @@ class ClipboardHistoryApp(QMainWindow):
         self.tray_icon = None  # 托盘图标
         # 初始化设置
         self.setWindowTitle("剪贴板历史记录")
-        # self.setFixedSize(400, 500)
 
         # 双击复制到粘贴板
         self.ui.history_list.itemDoubleClicked.connect(self._copy_to_clipboard)
@@ -51,8 +50,6 @@ class ClipboardHistoryApp(QMainWindow):
         # 访问具体设置项
         hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
         self.__hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
-        max_history = settings.max_history  # 获取最大历史记录数（默认 50）
-        auto_start = settings.auto_start  # 获取开机自启状态（默认 False）
 
 
         # 转换小写
@@ -76,11 +73,6 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui.search_box.textChanged.connect(self.filter_history)
         # 拖动相关变量
         self.drag_pos = None
-
-        # 每 5 分钟记录一次系统资源使用情况
-        self.resource_timer = QTimer(self)
-        self.resource_timer.timeout.connect(self.log_system_resources)
-        self.resource_timer.start(5 * 60 * 1000)
 
         # 新增删除功能配置
         self.setup_delete_functionality()
@@ -264,10 +256,6 @@ class ClipboardHistoryApp(QMainWindow):
         """错误提示"""
         QMessageBox.critical(self, title, message)
 
-    def log_system_resources(self):
-        cpu_percent = psutil.cpu_percent()
-        memory_percent = psutil.virtual_memory().percent
-        logging.info(f" CPU 使用率: {cpu_percent}%, 内存使用率: {memory_percent}%")
 
     def show_startup_notification(self):
         """增强版通知方法"""
