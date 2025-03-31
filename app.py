@@ -1,9 +1,10 @@
 import os
 import sys
-import keyboard
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
 from PySide6.QtCore import QObject, Signal, QPoint, Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
+
+from hotkey_manager import HotkeyManager
 from models import ClipboardItem, Session, get_settings, auto_clean_history
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
@@ -23,35 +24,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-class HotkeyManager(QObject):
-    """全局热键管理"""
-    hotkey_pressed = Signal()
 
-    def __init__(self):
-        super().__init__()
-        self._running = False
-
-    def start_listen(self, hotkey='ctrl+]'):
-        if self._running:
-            self.stop_listen()
-        self._running = True
-        keyboard.add_hotkey(hotkey, lambda: self.hotkey_pressed.emit())
-
-    def stop_listen(self):
-        self._running = False
-        keyboard.unhook_all()
-
-    def _listen_hotkey(self, hotkey):
-        while self._running:
-            try:
-                logging.info(f"等待热键 {hotkey} 按下...")
-                keyboard.wait(hotkey)
-                if self._running:
-                    logging.info(f"热键 {hotkey} 被触发")
-                    self.hotkey_pressed.emit()
-            except Exception as e:
-                logging.error(f"热键监听出错: {e}")
-                break
 
 
 class ClipboardHistoryApp(QMainWindow):
