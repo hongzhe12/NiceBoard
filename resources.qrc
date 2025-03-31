@@ -2,6 +2,8 @@
 <RCC version="1.0">
     <qresource prefix="/">
         <file>icons/clipboard.svg</file>
-        <!-- 可以添加更多资源 -->
+        <file>icons/favicon.ico</file>
+        <file>icons/收藏.svg</file>
+        <file>icons/未收藏.svg</file>
     </qresource>
 </RCC>
