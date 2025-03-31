@@ -54,6 +54,13 @@ class ClipboardHistoryApp(QMainWindow):
         max_history = settings.max_history  # 获取最大历史记录数（默认 50）
         auto_start = settings.auto_start  # 获取开机自启状态（默认 False）
 
+
+        # 转换小写
+        hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
+        # 预处理
+        hotkey = hotkey.replace('alt', '<alt>')
+        hotkey = hotkey.replace('ctrl', '<ctrl>')
+
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
