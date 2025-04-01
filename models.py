@@ -31,6 +31,7 @@ class ClipboardItem(Base):
     id = Column(Integer, primary_key=True)
     content = Column(String(5000))  # 限制内容长度
     timestamp = Column(DateTime, default=datetime.now)
+    is_favorite = Column(Boolean, default=False) # 是否收藏
 
     def __repr__(self):
         return f"<ClipboardItem(content='{self.content[:20]}...')>"
@@ -100,7 +101,7 @@ def cleanup():
 
 
 def auto_clean_history():
-    """自动清理历史记录，保持不超过最大限制"""
+    """自动清理历史记录，保持不超过最大限制，不删除收藏的记录"""
     session = Session()
     try:
         settings = session.query(AppSettings).first()
@@ -108,16 +109,17 @@ def auto_clean_history():
         if not settings:
             return  # 无设置则不清理
 
-        # 查询当前记录总数
-        total = session.query(ClipboardItem).count()
+        # 查询当前非收藏记录总数
+        total = session.query(ClipboardItem).filter(ClipboardItem.is_favorite == False).count()
         if total <= settings.max_history:
             return  # 未超限，无需清理
 
         # 计算需要删除的数量
         excess = total - settings.max_history
 
-        # 找出最旧的 `excess` 条记录并删除
+        # 找出最旧的 `excess` 条非收藏记录并删除
         oldest_items = session.query(ClipboardItem) \
+            .filter(ClipboardItem.is_favorite == False) \
             .order_by(ClipboardItem.timestamp.asc()) \
             .limit(excess) \
             .all()

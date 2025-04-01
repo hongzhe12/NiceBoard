@@ -5,5 +5,7 @@
         <file>icons/favicon.ico</file>
         <file>icons/收藏.svg</file>
         <file>icons/未收藏.svg</file>
+        <file>icons/开关 开.svg</file>
+        <file>icons/开关 关.svg</file>
     </qresource>
 </RCC>

@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
 
+from customlistwidget import CustomListItemWidget
 from hotkey_manager import HotkeyManager
 from models import ClipboardItem, Session, get_settings, auto_clean_history
 from settings_window import SettingsWindow
@@ -15,7 +16,6 @@ from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
-import resources_rc
 
 # 配置日志记录
 logging.basicConfig(
@@ -23,8 +23,6 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
-
 
 
 class ClipboardHistoryApp(QMainWindow):
@@ -35,6 +33,8 @@ class ClipboardHistoryApp(QMainWindow):
 
         self.settings_window = None  # 添加设置窗口引用
         self.tray_icon = None  # 托盘图标
+        self.is_favorited = False  # 是否收藏
+
         # 初始化设置
         self.setWindowTitle("剪贴板历史记录")
 
@@ -43,14 +43,13 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 初始化剪贴板监控
         self.clipboard = QApplication.clipboard()
-        self.clipboard.dataChanged.connect(self._on_clipboard_change) # 咱铁板
+        self.clipboard.dataChanged.connect(self._on_clipboard_change)  # 咱铁板
 
         # 获取当前设置
         settings = get_settings()
         # 访问具体设置项
         hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
         self.__hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
-
 
         # 转换小写
         hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
@@ -61,7 +60,7 @@ class ClipboardHistoryApp(QMainWindow):
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
-        self.hotkey_manager.start_listen(hotkey = hotkey)
+        self.hotkey_manager.start_listen(hotkey=hotkey)
 
         # 加载历史记录
         self._load_history()
@@ -82,6 +81,122 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 显示启动通知（不需要常驻托盘图标）
         self.show_startup_notification()
+
+        # 收藏列表按钮
+        self.ui.show_favorite_button.clicked.connect(self.show_favorite_history)
+
+
+    def favorite_status_update(self, obj: CustomListItemWidget):
+        """处理收藏状态变化并更新数据库"""
+        text = obj.label.text()  # 获取文本内容
+
+        print("内容：{} 状态：{}".format(text, obj.is_favorited))
+        session = Session()
+        try:
+            # 查询数据库中对应的条目
+            item = session.query(ClipboardItem) \
+                .filter(ClipboardItem.content == text) \
+                .first()
+
+            if item:
+                # 更新收藏状态
+                item.is_favorite = obj.is_favorited
+                session.commit()
+
+                if obj.is_favorited:  # 收藏
+                    logging.info(f"已收藏: {text[:50]}...")  # 日志记录前50个字符
+                    print(f'已收藏: {text}')
+                else:  # 取消收藏
+                    logging.info(f"已取消收藏: {text[:50]}...")
+                    print(f'已取消收藏: {text}')
+
+                # 如果当前正在显示收藏列表，需要刷新显示
+                if self.is_favorited:
+                    self._load_favorite_history()
+
+
+
+            else:
+                logging.warning(f"未找到匹配的剪贴板条目: {text[:50]}...")
+
+        except Exception as e:
+            session.rollback()
+            logging.error(f"更新收藏状态失败: {str(e)}")
+            QMessageBox.warning(self, "错误", f"更新收藏状态失败: {str(e)}")
+
+        finally:
+            session.close()
+
+    def show_favorite_history(self):
+        """显示收藏的剪贴板历史记录"""
+
+        if self.is_favorited:
+            # 更新图标状态
+            self.ui.show_favorite_button.setIcon(QIcon(":/icons/开关 关.svg"))
+            # 更新收藏按钮状态
+            self.is_favorited = False
+            # 显示所有剪贴板历史记录
+            self._load_history()
+        else:
+            # 更新图标状态
+            self.ui.show_favorite_button.setIcon(QIcon(":/icons/开关 开.svg"))
+            # 更新收藏按钮状态
+            self.is_favorited = True
+            # 显示收藏的剪贴板历史记录
+            self._load_favorite_history()
+
+    # 更新item UI的收藏状态
+    def update_ui_favorite(self, item, is_favorited):
+        """更新item UI的收藏状态"""
+        if is_favorited:
+            # 更新图标状态
+            item.fav_button.setIcon(QIcon(":/icons/收藏.svg"))
+            item.label.setStyleSheet(f"""font-size: 14px;
+            color: #FFA500;
+            font-weight: bold;""")
+
+        else:
+            # 更新图标状态
+            item.fav_button.setIcon(QIcon(":/icons/未收藏.svg"))
+            item.label.setStyleSheet(f"""font-size: 14px;
+                                    color: black;
+                                    font-weight: normal;
+                                """)
+
+    def _load_favorite_history(self):
+        """加载收藏的剪贴板历史记录"""
+        self.ui.history_list.clear()
+        session = Session()
+        try:
+            items = session.query(ClipboardItem) \
+                .filter(ClipboardItem.is_favorite == True) \
+                .order_by(ClipboardItem.timestamp.desc()) \
+                .limit(50) \
+                .all()
+
+            if not items:
+                QMessageBox.information(self, "收藏夹", "您还没有收藏任何内容")
+                return
+
+            for item in items:
+                list_item = QListWidgetItem(item.content)
+                self.ui.history_list.addItem(list_item)
+
+                # ============================== 更新UI状态 ==============================
+                # 获取所有自定义item widgets，为每一个item绑定槽函数
+                self.all_widgets = self.ui.history_list.get_all_item_widgets()
+                # 遍历处理
+                for index in range(len(self.all_widgets)):
+                    # 数据库内容(item.content) ： UI显示内容(self.all_widgets[index])
+                    if item.content == self.all_widgets[index].label.text():
+                        # 更新UI的状态
+                        self.update_ui_favorite(self.all_widgets[index], item.is_favorite)
+
+        except Exception as e:
+            logging.error(f"加载收藏失败: {e}")
+            QMessageBox.warning(self, "错误", "加载收藏内容时出错")
+        finally:
+            session.close()
 
     def setup_system_tray(self):
         """创建系统托盘图标"""
@@ -150,7 +265,6 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 绑定关闭事件
         self.settings_window.destroyed.connect(lambda: setattr(self, 'settings_window', None))
-
 
     def show_normal(self):
         """正常显示窗口"""
@@ -256,7 +370,6 @@ class ClipboardHistoryApp(QMainWindow):
         """错误提示"""
         QMessageBox.critical(self, title, message)
 
-
     def show_startup_notification(self):
         """增强版通知方法"""
         if not QSystemTrayIcon.isSystemTrayAvailable():
@@ -272,7 +385,6 @@ class ClipboardHistoryApp(QMainWindow):
             QSystemTrayIcon.Information,
             3000
         )
-
 
     def mousePressEvent(self, event):
         """鼠标按下时记录位置"""
@@ -331,6 +443,17 @@ class ClipboardHistoryApp(QMainWindow):
                 .all()
             for item in items:
                 self.ui.history_list.addItem(item.content)
+
+                # ============================== 绑定信号槽、更新UI状态 ==============================
+                # 获取所有自定义item widgets，为每一个item绑定槽函数
+                self.all_widgets = self.ui.history_list.get_all_item_widgets()
+                # 遍历处理
+                for index in range(len(self.all_widgets)):
+                    self.all_widgets[index].is_favorited_signal.connect(self.favorite_status_update)
+                    # 数据库内容(item.content) ： UI显示内容(self.all_widgets[index])
+                    if item.content == self.all_widgets[index].label.text():
+                        # 更新UI的状态
+                        self.update_ui_favorite(self.all_widgets[index], item.is_favorite)
         finally:
             session.close()
 
@@ -367,21 +490,6 @@ class ClipboardHistoryApp(QMainWindow):
             session.close()
 
     def _copy_to_clipboard(self, item):
-        """双击项目复制到剪贴板"""
-        # 1. 复制选中内容到系统剪贴板
-        selected_text = item.text()
-        self.clipboard.setText(selected_text)
-
-        # 2. 自动清理历史记录
-        auto_clean_history()  # 这会删除超出限制的旧记录
-
-        # 3. 刷新UI显示
-        self._refresh_history_list()  # 新增的方法，用于刷新列表
-
-        # 4. 隐藏窗口
-        self.hide()
-
-    def _copy_to_clipboard(self, item):
         """双击项目：复制到剪贴板 + 自动粘贴到当前输入框 (Windows)"""
         try:
             # 1. 复制选中内容到剪贴板
@@ -398,6 +506,7 @@ class ClipboardHistoryApp(QMainWindow):
             QTimer.singleShot(100, lambda: self._paste_to_active_window(selected_text))
 
         except Exception as e:
+            print(e)
             logging.error(f"复制粘贴失败: {e}")
 
     def _paste_to_active_window(self, text):
@@ -485,15 +594,15 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # 全局样式
-    app.setStyleSheet("""
-        QListWidget {
-            font-size: 12px;
-            padding: 5px;
-        }
-        QPushButton {
-            padding: 8px;
-        }
-    """)
+    # app.setStyleSheet("""
+    #     QListWidget {
+    #         font-size: 12px;
+    #         padding: 5px;
+    #     }
+    #     QPushButton {
+    #         padding: 8px;
+    #     }
+    # """)
     app.setApplicationName("好贴板")  # 设置应用程序名称
 
     window = ClipboardHistoryApp()

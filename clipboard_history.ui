@@ -89,29 +89,7 @@ QListWidget#history_list {
     color: #333333;  /* 深色文字 */
 }
 
-/* 列表项 */
-QListWidget#history_list::item {
-    height: 40px;
-    padding: 8px 15px;
-    background: transparent;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    color: #333333;  /* 深色文字 */
-    border-radius: 5px;
-    margin: 3px;
-}
 
-/* 悬停效果 */
-QListWidget#history_list::item:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-}
-
-/* 选中效果 */
-QListWidget#history_list::item:selected {
-    background: #0078D4;
-    color: white;
-    border-radius: 4px;
-}
 
 /* ================= 垂直滚动条 ================= */
 QScrollBar:vertical {
@@ -264,22 +242,122 @@ SettingsWindow QCheckBox {
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QListWidget" name="history_list"/>
-    </item>
     <item row="0" column="0">
-     <widget class="QLineEdit" name="search_box">
-      <property name="styleSheet">
-       <string notr="true"/>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLineEdit" name="search_box">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="placeholderText">
+         <string>搜索剪贴板历史...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="show_favorite_button">
+        <property name="styleSheet">
+         <string notr="true">/* 按钮样式 */
+ QPushButton {
+padding: 8px;
+border: none;
+background: transparent;
+            }
+
+QPushButton:hover {
+background: rgba(200, 200, 200, 100);
+border-radius: 16px;
+ }</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resources.qrc">
+          <normaloff>:/icons/开关 关.svg</normaloff>
+          <normalon>:/icons/开关 开.svg</normalon>
+          <activeon>:/icons/开关 开.svg</activeon>:/icons/开关 关.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="0">
+     <widget class="CustomListWidget" name="history_list">
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>-1</pointsize>
+        <bold>true</bold>
+       </font>
       </property>
-      <property name="placeholderText">
-       <string>搜索剪贴板历史...</string>
+      <property name="styleSheet">
+       <string notr="true">/* 历史列表 - 提高对比度 */
+QListWidget#history_list {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 0;
+    outline: none;
+    font-size: 13px;
+    margin: 12px;
+    color: #333333;  /* 深色文字 */
+}
+
+/* 列表项 */
+QListWidget#history_list::item {
+    height: 50px;
+    padding: 8px 15px;
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    color: #333333;  /* 深色文字 */
+}
+
+/* 悬停效果 */
+QListWidget#history_list::item:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+/* 选中效果 */
+QListWidget#history_list::item:selected {
+    background: #0078D4;
+    color: white;
+    border-radius: 4px;
+}
+
+/* 按钮样式 */
+ QPushButton {
+padding: 8px;
+border: none;
+background: transparent;
+            }
+
+QPushButton:hover {
+background: rgba(200, 200, 200, 100);
+border-radius: 15px;
+ }</string>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
  </widget>
- <resources/>
+ <customwidgets>
+  <customwidget>
+   <class>CustomListWidget</class>
+   <extends>QListWidget</extends>
+   <header>customlistwidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

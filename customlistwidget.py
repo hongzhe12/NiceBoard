@@ -3,13 +3,15 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 )
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, Signal
 import sys
 import resources_rc
 
 
 class CustomListItemWidget(QWidget):
     """自定义列表项的Widget"""
+    # 定义被收藏信号
+    is_favorited_signal = Signal(object)
 
     def __init__(self, text, parent=None):
         super().__init__(parent)
@@ -20,7 +22,6 @@ class CustomListItemWidget(QWidget):
 
         # 添加标签显示文本
         self.label = QLabel(text)
-        self.label.setStyleSheet("font-size: 15px;")
         # 关键修改：设置自动换行，让QLabel支持多行显示
         self.label.setWordWrap(True)
         # 设置文本对齐方式为左对齐且垂直居中（可选，可按需调整）
@@ -51,9 +52,23 @@ class CustomListItemWidget(QWidget):
 
     def toggle_favorite(self):
         """切换收藏状态"""
-        self.is_favorited = ~self.is_favorited
+        self.is_favorited = not self.is_favorited
         self.update_icon()
-        print(f"收藏状态改变: {self.label.text()} - {'已收藏' if self.is_favorited else '未收藏'}")
+
+        # 发送信号
+        self.is_favorited_signal.emit(self)
+
+    def update_favorite_status(self):
+        """更新收藏UI"""
+        if self.is_favorited:
+            icon = QIcon(":/icons/收藏.svg")
+            self.fav_button.setIcon(icon)
+            self.label.setStyleSheet(f"""
+                        font-size: 14px;
+                        color: {'#FFA500' if self.is_favorited else 'black'};
+                        font-weight: {'bold' if self.is_favorited else 'normal'};
+                    """)
+
 
 
 class CustomListWidget(QListWidget):
@@ -61,16 +76,15 @@ class CustomListWidget(QListWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet("""
-            QListWidget {
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                padding: 5px;
-            }
-            QListWidget::item {
-                height: 40px;
-            }
-        """)
+
+
+        # self.setStyleSheet("""
+        #     QListWidget {
+        #         border: 1px solid #ccc;
+        #         border-radius: 5px;
+        #         padding: 5px;
+        #     }
+        # """)
 
     def addItem(self, item):
         """重写addItem方法以避免双重显示"""
@@ -108,6 +122,18 @@ class CustomListWidget(QListWidget):
         self.setItemWidget(item, widget)
         # 关键修改：清空原生文本显示，避免双重显示
         item.setText("")
+
+    def get_all_item_widgets(self):
+        """获取所有CustomListItemWidget实例"""
+        widgets = []
+        for i in range(self.count()):
+            item = self.item(i)
+            if item:  # 确保item存在
+                widget = self.itemWidget(item)
+                if isinstance(widget, CustomListItemWidget):  # 类型检查
+                    widgets.append(widget)
+        return widgets
+
 
 
 class MainWindow(QWidget):
