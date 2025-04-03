@@ -1,39 +1,43 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import declarative_base # 在 2.0 及以后的版本中，需要从 sqlalchemy.orm 导入
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Index
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-import atexit
-
-
 import os
 from pathlib import Path
-from sqlalchemy import create_engine
+
 
 # 获取数据库路径（返回字符串）
 def get_db_path():
     appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
     appdata_dir.mkdir(exist_ok=True)
-    return str(appdata_dir / 'clipboard_history.db')  # 关键修改：转换为字符串
+    return str(appdata_dir / 'clipboard_history.db')
+
 
 # 获取数据库文件路径
 file_path = get_db_path()
 
 # 初始化数据库
 Base = declarative_base()
-engine = create_engine(f'sqlite:///{file_path}', echo=False)  # 使用f-string确保路径格式正确
+engine = create_engine(f'sqlite:///{file_path}', echo=False)
 Session = sessionmaker(bind=engine)
 
 
-
+# 在ClipboardItem类中添加tags字段，并为content字段添加索引
 class ClipboardItem(Base):
     """剪贴板历史记录模型"""
     __tablename__ = 'clipboard_history'
     id = Column(Integer, primary_key=True)
-    content = Column(String(5000))  # 限制内容长度
+    content = Column(String(5000))
     timestamp = Column(DateTime, default=datetime.now)
+    is_favorite = Column(Boolean, default=False)
+    tags = Column(String(200), default="")
 
     def __repr__(self):
         return f"<ClipboardItem(content='{self.content[:20]}...')>"
+
+
+# 为content字段添加索引
+Index('idx_clipboard_content', ClipboardItem.content)
 
 
 class AppSettings(Base):
@@ -41,9 +45,9 @@ class AppSettings(Base):
     __tablename__ = 'app_settings'
 
     id = Column(Integer, primary_key=True)
-    hotkey = Column(String(20), default='Alt+X')  # 热键组合
-    max_history = Column(Integer, default=50)  # 最大记录数
-    auto_start = Column(Boolean, default=False)  # 开机自启
+    hotkey = Column(String(20), default='Alt+X')
+    max_history = Column(Integer, default=50)
+    auto_start = Column(Boolean, default=False)
 
 
 def init_settings():
@@ -51,7 +55,7 @@ def init_settings():
     session = Session()
     try:
         if not session.query(AppSettings).first():
-            session.add(AppSettings())  # 使用所有默认值
+            session.add(AppSettings())
             session.commit()
     except Exception as e:
         session.rollback()
@@ -94,24 +98,18 @@ def update_settings(**kwargs):
         session.close()
 
 
-def cleanup():
-    """程序退出时关闭数据库连接"""
-    engine.dispose()
-
-
 def auto_clean_history():
     """自动清理历史记录，保持不超过最大限制"""
     session = Session()
     try:
         settings = session.query(AppSettings).first()
-        print("最大上限：", settings.max_history)
         if not settings:
-            return  # 无设置则不清理
+            return
 
         # 查询当前记录总数
         total = session.query(ClipboardItem).count()
         if total <= settings.max_history:
-            return  # 未超限，无需清理
+            return
 
         # 计算需要删除的数量
         excess = total - settings.max_history
@@ -133,4 +131,141 @@ def auto_clean_history():
     finally:
         session.close()
 
-atexit.register(cleanup)
+
+def find_tags_by_content(content):
+    """
+    根据剪贴板项的内容查找对应的标签
+    :param content: 剪贴板项的内容
+    :return: 找到的剪贴板项的标签，如果未找到则返回空字符串
+    """
+    session = Session()
+    try:
+        item = session.query(ClipboardItem).filter(ClipboardItem.content == content).first()
+        if item:
+            return item.tags
+        return ""
+    except Exception as e:
+        print(f"查找标签失败: {e}")
+        return ""
+    finally:
+        session.close()
+
+def update_tags_for_clipboard_item(content, new_tags):
+    """
+    更新指定剪贴板项的标签
+    :param content: 剪贴板项的内容
+    :param new_tags: 新的标签，可以是单个标签字符串或多个标签用逗号分隔的字符串
+    """
+    session = Session()
+    try:
+        item = session.query(ClipboardItem).filter(ClipboardItem.content == content).first()
+        if item:
+            tag_list = [tag.strip() for tag in new_tags.split(',') if tag.strip()]
+            item.tags = ','.join(sorted(tag_list))
+            session.commit()
+            print(f"成功更新内容为 {content} 的剪贴板项的标签为: {new_tags}")
+        else:
+            print(f"未找到内容为 {content} 的剪贴板项")
+    except Exception as e:
+        session.rollback()
+        print(f"更新标签失败: {e}")
+    finally:
+        session.close()
+
+
+def get_clipboard_history(limit=50):
+    """从数据库加载历史记录"""
+    session = Session()
+    try:
+        items = session.query(ClipboardItem) \
+            .order_by(ClipboardItem.timestamp.desc()) \
+            .limit(limit) \
+            .all()
+        return items
+    finally:
+        session.close()
+
+
+def add_clipboard_item(text):
+    """添加新的剪贴板记录"""
+    session = Session()
+    try:
+        # 检查是否已存在相同内容
+        exists = session.query(ClipboardItem) \
+            .filter(ClipboardItem.content == text) \
+            .first()
+        if not exists:
+            # 插入新记录
+            new_item = ClipboardItem(content=text)
+            session.add(new_item)
+            session.commit()
+            return True
+        return False
+    except Exception as e:
+        session.rollback()
+        print(f"数据库错误: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def delete_clipboard_item(content):
+    """删除指定内容的剪贴板记录"""
+    session = Session()
+    try:
+        session.query(ClipboardItem) \
+            .filter(ClipboardItem.content == content) \
+            .delete(synchronize_session=False)
+        session.commit()
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"删除失败: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def clear_all_clipboard_history():
+    """清空所有剪贴板历史记录"""
+    session = Session()
+    try:
+        session.query(ClipboardItem).delete()
+        session.commit()
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"清空失败: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def filter_clipboard_history(text, limit=50):
+    """根据搜索文本过滤剪贴板历史记录，优先按标签搜索，其次按内容搜索"""
+    session = Session()
+    try:
+        # 优先按标签搜索
+        tag_items = session.query(ClipboardItem) \
+            .filter(ClipboardItem.tags.contains(text)) \
+            .order_by(ClipboardItem.timestamp.desc()) \
+            .limit(limit) \
+            .all()
+        tag_count = len(tag_items)
+
+        if tag_count < limit:
+            # 标签匹配数量不足，再按内容搜索补足
+            remaining = limit - tag_count
+            content_items = session.query(ClipboardItem) \
+                .filter(ClipboardItem.content.contains(text)) \
+                .filter(~ClipboardItem.id.in_([item.id for item in tag_items])) \
+                .order_by(ClipboardItem.timestamp.desc()) \
+                .limit(remaining) \
+                .all()
+            items = tag_items + content_items
+        else:
+            items = tag_items
+
+        return items
+    finally:
+        session.close()

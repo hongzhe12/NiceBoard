@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'clipboard_history.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.2
+## Created by: Qt User Interface Compiler version 6.8.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -288,16 +288,16 @@ class Ui_SimpleClipboardHistory(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.history_list = QListWidget(self.centralwidget)
-        self.history_list.setObjectName(u"history_list")
-
-        self.gridLayout.addWidget(self.history_list, 1, 0, 1, 1)
-
         self.search_box = QLineEdit(self.centralwidget)
         self.search_box.setObjectName(u"search_box")
         self.search_box.setStyleSheet(u"")
 
         self.gridLayout.addWidget(self.search_box, 0, 0, 1, 1)
+
+        self.history_list = QListWidget(self.centralwidget)
+        self.history_list.setObjectName(u"history_list")
+
+        self.gridLayout.addWidget(self.history_list, 1, 0, 1, 1)
 
         SimpleClipboardHistory.setCentralWidget(self.centralwidget)
 

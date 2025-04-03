@@ -4,10 +4,13 @@ import sys
 
 from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
-from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
+    QDialog
 
 from hotkey_manager import HotkeyManager
-from models import ClipboardItem, Session, get_settings, auto_clean_history
+from input_form_dialog import InputFormDialog
+from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
+    filter_clipboard_history, get_settings, auto_clean_history, update_tags_for_clipboard_item, find_tags_by_content
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 
@@ -23,8 +26,6 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
-
 
 
 class ClipboardHistoryApp(QMainWindow):
@@ -43,14 +44,13 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 初始化剪贴板监控
         self.clipboard = QApplication.clipboard()
-        self.clipboard.dataChanged.connect(self._on_clipboard_change) # 咱铁板
+        self.clipboard.dataChanged.connect(self._on_clipboard_change)
 
         # 获取当前设置
         settings = get_settings()
         # 访问具体设置项
         hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
         self.__hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
-
 
         # 转换小写
         hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
@@ -61,7 +61,7 @@ class ClipboardHistoryApp(QMainWindow):
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
-        self.hotkey_manager.start_listen(hotkey = hotkey)
+        self.hotkey_manager.start_listen(hotkey=hotkey)
 
         # 加载历史记录
         self._load_history()
@@ -103,6 +103,7 @@ class ClipboardHistoryApp(QMainWindow):
 
         history_action = tray_menu.addAction("查看剪贴板历史")
         history_action.triggered.connect(self.toggle_window)
+
 
         tray_menu.addSeparator()
         quit_action = tray_menu.addAction("退出")
@@ -151,7 +152,6 @@ class ClipboardHistoryApp(QMainWindow):
         # 绑定关闭事件
         self.settings_window.destroyed.connect(lambda: setattr(self, 'settings_window', None))
 
-
     def show_normal(self):
         """正常显示窗口"""
         self.show()
@@ -187,12 +187,15 @@ class ClipboardHistoryApp(QMainWindow):
 
     def show_context_menu(self, pos):
         """智能右键菜单"""
+
+        current_text = self.ui.history_list.itemAt(pos).text()
         menu = QMenu()
         actions = {
+            "设置标签": lambda: self.set_label(current_text),
+            "复制内容": lambda: self.clipboard.setText(current_text),
             "删除": self.delete_selected_item,
-            "清空历史": self.clear_all_history,
-            # "复制内容": lambda: self._copy_to_clipboard(self.ui.history_list.itemAt(pos))
-            "复制内容": lambda: self.clipboard.setText(self.ui.history_list.itemAt(pos).text())
+            "清空历史": self.clear_all_history
+
         }
 
         for text, callback in actions.items():
@@ -201,39 +204,35 @@ class ClipboardHistoryApp(QMainWindow):
 
         menu.exec(self.ui.history_list.mapToGlobal(pos))
 
+    # 设置标签方法
+    def set_label(self,text):
+        """设置标签"""
+
+        tag = find_tags_by_content(text)
+        # 自定义数据结构，用于描述表单字段，添加了默认值
+        form_structure = [
+            {"label": f"为【{text[:10]+'...' if len(text) > 10 else text }】设置标签", "type": "text", "default": tag}
+        ]
+
+        dialog = InputFormDialog(form_structure, self)
+        if dialog.exec() == QDialog.Accepted:
+            values = dialog.get_input_values()
+            label = values[0]
+            update_tags_for_clipboard_item(text,label)
+
+
     def delete_selected_item(self):
         """安全删除当前选中项"""
         selected = self.ui.history_list.currentItem()
-        self._delete_item_content(selected.text())
+        if selected:
+            if delete_clipboard_item(selected.text()):
+                self._remove_from_list(selected.text())
 
     def clear_all_history(self):
         """批量删除确认"""
         if self.confirm_delete("确定清空所有剪贴板历史吗？", dangerous=True):
-            session = Session()
-            try:
-                session.query(ClipboardItem).delete()
-                session.commit()
+            if clear_all_clipboard_history():
                 self.ui.history_list.clear()
-            except Exception as e:
-                session.rollback()
-                self.show_error("清空失败", str(e))
-            finally:
-                session.close()
-
-    def _delete_item_content(self, content):
-        """执行数据库删除"""
-        session = Session()
-        try:
-            session.query(ClipboardItem) \
-                .filter(ClipboardItem.content == content) \
-                .delete(synchronize_session=False)
-            session.commit()
-            self._remove_from_list(content)
-        except Exception as e:
-            session.rollback()
-            self.show_error("删除失败", str(e))
-        finally:
-            session.close()
 
     def _remove_from_list(self, content):
         """同步更新UI列表"""
@@ -256,7 +255,6 @@ class ClipboardHistoryApp(QMainWindow):
         """错误提示"""
         QMessageBox.critical(self, title, message)
 
-
     def show_startup_notification(self):
         """增强版通知方法"""
         if not QSystemTrayIcon.isSystemTrayAvailable():
@@ -272,7 +270,6 @@ class ClipboardHistoryApp(QMainWindow):
             QSystemTrayIcon.Information,
             3000
         )
-
 
     def mousePressEvent(self, event):
         """鼠标按下时记录位置"""
@@ -295,18 +292,10 @@ class ClipboardHistoryApp(QMainWindow):
 
     def filter_history(self, text):
         """根据搜索文本过滤列表"""
-        session = Session()
-        try:
-            self.ui.history_list.clear()
-            items = session.query(ClipboardItem) \
-                .filter(ClipboardItem.content.contains(text)) \
-                .order_by(ClipboardItem.timestamp.desc()) \
-                .limit(50) \
-                .all()
-            for item in items:
-                self.ui.history_list.addItem(item.content)
-        finally:
-            session.close()
+        self.ui.history_list.clear()
+        items = filter_clipboard_history(text)
+        for item in items:
+            self.ui.history_list.addItem(item.content)
 
     def setMaskCornerRadius(self, radius):
         """ 创建圆角遮罩 """
@@ -323,16 +312,9 @@ class ClipboardHistoryApp(QMainWindow):
     def _load_history(self, limit=50):
         """从数据库加载历史记录"""
         self.ui.history_list.clear()
-        session = Session()
-        try:
-            items = session.query(ClipboardItem) \
-                .order_by(ClipboardItem.timestamp.desc()) \
-                .limit(limit) \
-                .all()
-            for item in items:
-                self.ui.history_list.addItem(item.content)
-        finally:
-            session.close()
+        items = get_clipboard_history(limit)
+        for item in items:
+            self.ui.history_list.addItem(item.content)
 
     def _on_clipboard_change(self):
         """剪贴板内容变化时的处理"""
@@ -344,42 +326,12 @@ class ClipboardHistoryApp(QMainWindow):
         if not text:
             return
 
-        session = Session()
-        try:
-            # 检查是否已存在相同内容
-            exists = session.query(ClipboardItem) \
-                .filter(ClipboardItem.content == text) \
-                .first()
-            if not exists:
-                # 插入新记录
-                new_item = ClipboardItem(content=text)
-                session.add(new_item)
-                session.commit()
-                # 更新UI
-                self.ui.history_list.insertItem(0, text)
-                # 限制显示数量
-                if self.ui.history_list.count() > 50:
-                    self.ui.history_list.takeItem(50)
-        except Exception as e:
-            session.rollback()
-            print(f"数据库错误: {e}")
-        finally:
-            session.close()
-
-    def _copy_to_clipboard(self, item):
-        """双击项目复制到剪贴板"""
-        # 1. 复制选中内容到系统剪贴板
-        selected_text = item.text()
-        self.clipboard.setText(selected_text)
-
-        # 2. 自动清理历史记录
-        auto_clean_history()  # 这会删除超出限制的旧记录
-
-        # 3. 刷新UI显示
-        self._refresh_history_list()  # 新增的方法，用于刷新列表
-
-        # 4. 隐藏窗口
-        self.hide()
+        if add_clipboard_item(text):
+            # 更新UI
+            self.ui.history_list.insertItem(0, text)
+            # 限制显示数量
+            if self.ui.history_list.count() > 50:
+                self.ui.history_list.takeItem(50)
 
     def _copy_to_clipboard(self, item):
         """双击项目：复制到剪贴板 + 自动粘贴到当前输入框 (Windows)"""
@@ -429,14 +381,10 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui.history_list.clear()
 
         # 从数据库重新加载记录
-        session = Session()
-        try:
-            items = session.query(ClipboardItem).order_by(ClipboardItem.timestamp.desc()).all()
-            for item in items:
-                list_item = QListWidgetItem(item.content)
-                self.ui.history_list.addItem(list_item)
-        finally:
-            session.close()
+        items = get_clipboard_history()
+        for item in items:
+            list_item = QListWidgetItem(item.content)
+            self.ui.history_list.addItem(list_item)
 
     def toggle_window(self):
         """切换窗口显示状态"""
