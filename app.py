@@ -3,9 +3,9 @@ import os
 import sys
 
 from PySide6.QtCore import Qt, QTimer, QEvent
-from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon
+from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
-    QDialog
+    QDialog, QToolTip
 
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
@@ -83,6 +83,20 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 显示启动通知（不需要常驻托盘图标）
         self.show_startup_notification()
+
+        # 为每一项注册提示
+        # self.add_tooltip()
+
+    # def add_tooltip(self):
+    #     for row in range(self.ui.history_list.count()):
+    #         item = self.ui.history_list.item(row)
+    #         item.setToolTip(item.text())
+    #
+    #
+    #         # 强制更新
+    #         self.ui.history_list.viewport().update()
+
+
 
     def setup_system_tray(self):
         """创建系统托盘图标"""
@@ -296,7 +310,18 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui.history_list.clear()
         items = filter_clipboard_history(text)
         for item in items:
-            self.ui.history_list.addItem(item.content)
+            # 创建列表项
+            list_item = QListWidgetItem(item.content)
+
+            # 如果有标签，设置提示
+            if item.tags:
+                list_item.setToolTip(f"标签：{item.tags}")
+            elif len(item.content) < 500:
+                list_item.setToolTip(item.content)
+            else:
+                list_item.setToolTip("内容过长，无法显示")
+
+            self.ui.history_list.addItem(list_item)
 
     def setMaskCornerRadius(self, radius):
         """ 创建圆角遮罩 """
@@ -310,12 +335,24 @@ class ClipboardHistoryApp(QMainWindow):
         self.setMaskCornerRadius(10)
         super().resizeEvent(event)
 
+
     def _load_history(self, limit=50):
         """从数据库加载历史记录"""
         self.ui.history_list.clear()
         items = get_clipboard_history(limit)
         for item in items:
-            self.ui.history_list.addItem(item.content)
+            # 创建列表项
+            list_item = QListWidgetItem(item.content)
+
+            # 如果有标签，设置提示
+            if item.tags:
+                list_item.setToolTip(f"标签：{item.tags}")
+            elif len(item.content) < 500:
+                list_item.setToolTip(item.content)
+            else:
+                list_item.setToolTip("内容过长，无法显示")
+
+            self.ui.history_list.addItem(list_item)
 
     def _on_clipboard_change(self):
         """剪贴板内容变化时的处理"""
@@ -428,6 +465,7 @@ class ClipboardHistoryApp(QMainWindow):
         else:
             self.hotkey_manager.stop_listen()
             super().closeEvent(event)
+
 
 
 if __name__ == "__main__":
