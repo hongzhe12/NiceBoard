@@ -58,6 +58,7 @@ class ClipboardHistoryApp(QMainWindow):
         hotkey = hotkey.replace('alt', '<alt>')
         hotkey = hotkey.replace('ctrl', '<ctrl>')
 
+        print("实际传递给HotkeyManager的hotkey:", hotkey)
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
