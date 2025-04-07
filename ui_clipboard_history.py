@@ -15,12 +15,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGridLayout, QHBoxLayout, QLineEdit,
-    QListWidgetItem, QMainWindow, QPushButton, QSizePolicy,
-    QWidget)
-
-from customlistwidget import CustomListWidget
-import resources_rc
+from PySide6.QtWidgets import (QApplication, QGridLayout, QLineEdit, QListWidget,
+    QListWidgetItem, QMainWindow, QSizePolicy, QWidget)
 
 class Ui_SimpleClipboardHistory(object):
     def setupUi(self, SimpleClipboardHistory):
@@ -94,6 +90,27 @@ class Ui_SimpleClipboardHistory(object):
 "    color: #333333;  /* \u6df1\u8272\u6587\u5b57 */\n"
 "}\n"
 "\n"
+"/* \u5217\u8868\u9879 */\n"
+"QListWidget#history_list::item {\n"
+"    height: 40px;\n"
+"    padding: 8px 15px;\n"
+"    background: transparent;\n"
+"    border-bottom: 1px solid rgba(0, 0, 0, 0.05);\n"
+"    color: #333333;  /* \u6df1\u8272\u6587\u5b57 */\n"
+"}\n"
+"\n"
+"/* \u60ac\u505c\u6548\u679c */\n"
+"QListWidget#history_list::item:hover {\n"
+"    background: rgba(0, 0, 0, 0.05);\n"
+"    border-radius: 4px;\n"
+"}\n"
+"\n"
+"/* \u9009\u4e2d\u6548\u679c */\n"
+"QListWidget#history_list::item:selected {\n"
+"    background: #0078D4;\n"
+"    color: white;\n"
+"    border-radius: 4px;\n"
+"}\n"
 "\n"
 "\n"
 "/* ================= \u5782\u76f4\u6eda\u52a8\u6761 ================= */\n"
@@ -102,7 +119,8 @@ class Ui_SimpleClipboardHistory(object):
 "    background: rgba(0, 0, 0, 0.05);  /* \u975e\u5e38\u6de1\u7684\u80cc\u666f */\n"
 "    width: 10px;  /* \u6eda\u52a8\u6761\u5bbd\u5ea6 */\n"
 "    margin: 2px;\n"
-"    border-radius: 0;\n"
+"   "
+                        " border-radius: 0;\n"
 "}\n"
 "\n"
 "QScrollBar::handle:vertical {\n"
@@ -122,8 +140,7 @@ class Ui_SimpleClipboardHistory(object):
 "    background: none;\n"
 "}\n"
 "\n"
-"QScrollBar::add"
-                        "-page:vertical,\n"
+"QScrollBar::add-page:vertical,\n"
 "QScrollBar::sub-page:vertical {\n"
 "    background: none;  /* \u6eda\u52a8\u6761\u80cc\u666f\u4ee5\u5916\u7684\u533a\u57df\u900f\u660e */\n"
 "}\n"
@@ -134,7 +151,8 @@ class Ui_SimpleClipboardHistory(object):
 "    background: rgba(0, 0, 0, 0.05);\n"
 "    height: 10px;  /* \u6eda\u52a8\u6761\u9ad8\u5ea6 */\n"
 "    margin: 2px;\n"
-"    border-radius: 0;\n"
+"    border"
+                        "-radius: 0;\n"
 "}\n"
 "\n"
 "QScrollBar::handle:horizontal {\n"
@@ -156,8 +174,7 @@ class Ui_SimpleClipboardHistory(object):
 "\n"
 "QScrollBar::add-page:horizontal,\n"
 "QScrollBar::sub-page:horizontal {\n"
-"    background: n"
-                        "one;\n"
+"    background: none;\n"
 "}\n"
 "\n"
 "/* ================= \u6eda\u52a8\u6761\u89d2\u90e8 ================= */\n"
@@ -170,7 +187,8 @@ class Ui_SimpleClipboardHistory(object):
 "/* ===== \u529f\u80fd\u6309\u94ae ===== */\n"
 "QPushButton#toggle_btn {\n"
 "    background-color: #4CAF50;\n"
-"    border: none;\n"
+"  "
+                        "  border: none;\n"
 "    color: white;\n"
 "    padding: 10px;\n"
 "    margin: 6px;\n"
@@ -197,15 +215,34 @@ class Ui_SimpleClipboardHistory(object):
 "}\n"
 "\n"
 "QPushButton#btn_delete:hover {\n"
-"    background-color: #e53"
-                        "935;\n"
+"    background-color: #e53935;\n"
 "}\n"
 "\n"
 "QPushButton#btn_delete:pressed {\n"
 "    background-color: #d32f2f;\n"
 "}\n"
 "\n"
-"/* \u7cfb\u7edf\u6258\u76d8\u83dc\u5355\u6837\u5f0f */\n"
+"\n"
+"\n"
+"/* \u786e\u4fdd\u80cc\u666f\u900f\u660e */\n"
+"QListWidget {\n"
+"    background: transparent;\n"
+"    outline: none;\n"
+"}\n"
+"\n"
+"QListWidget::item {\n"
+"    background: white;\n"
+"    border-radius: 5px;\n"
+"    margin: 3px;\n"
+"}\n"
+"\n"
+"QListWidget::item:hover {\n"
+"    background: #f0f7ff;\n"
+"}\n"
+"\n"
+"\n"
+"/"
+                        "* \u7cfb\u7edf\u6258\u76d8\u83dc\u5355\u6837\u5f0f */\n"
 "QMenu {\n"
 "    background-color: #f5f5f5;\n"
 "    border: 1px solid #d0d0d0;\n"
@@ -246,96 +283,19 @@ class Ui_SimpleClipboardHistory(object):
 "\n"
 "SettingsWindow QCheckBox {\n"
 "    spacing: 5px;\n"
-"}    ")
+"}")
         self.centralwidget = QWidget(SimpleClipboardHistory)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.search_box = QLineEdit(self.centralwidget)
         self.search_box.setObjectName(u"search_box")
         self.search_box.setStyleSheet(u"")
 
-        self.horizontalLayout.addWidget(self.search_box)
+        self.gridLayout.addWidget(self.search_box, 0, 0, 1, 1)
 
-        self.show_favorite_button = QPushButton(self.centralwidget)
-        self.show_favorite_button.setObjectName(u"show_favorite_button")
-        self.show_favorite_button.setStyleSheet(u"/* \u6309\u94ae\u6837\u5f0f */\n"
-" QPushButton {\n"
-"padding: 8px;\n"
-"border: none;\n"
-"background: transparent;\n"
-"            }\n"
-"\n"
-"QPushButton:hover {\n"
-"background: rgba(200, 200, 200, 100);\n"
-"border-radius: 16px;\n"
-" }")
-        icon = QIcon()
-        icon.addFile(u":/icons/\u5f00\u5173 \u5173.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        icon.addFile(u":/icons/\u5f00\u5173 \u5f00.svg", QSize(), QIcon.Mode.Normal, QIcon.State.On)
-        icon.addFile(u":/icons/\u5f00\u5173 \u5f00.svg", QSize(), QIcon.Mode.Active, QIcon.State.On)
-        self.show_favorite_button.setIcon(icon)
-        self.show_favorite_button.setIconSize(QSize(32, 32))
-
-        self.horizontalLayout.addWidget(self.show_favorite_button)
-
-
-        self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
-
-        self.history_list = CustomListWidget(self.centralwidget)
+        self.history_list = QListWidget(self.centralwidget)
         self.history_list.setObjectName(u"history_list")
-        font = QFont()
-        font.setFamilies([u"\u5fae\u8f6f\u96c5\u9ed1"])
-        font.setBold(True)
-        self.history_list.setFont(font)
-        self.history_list.setStyleSheet(u"/* \u5386\u53f2\u5217\u8868 - \u63d0\u9ad8\u5bf9\u6bd4\u5ea6 */\n"
-"QListWidget#history_list {\n"
-"    background: rgba(255, 255, 255, 0.7);\n"
-"    border: 1px solid rgba(0, 0, 0, 0.08);\n"
-"    border-radius: 8px;\n"
-"    padding: 0;\n"
-"    outline: none;\n"
-"    font-size: 13px;\n"
-"    margin: 12px;\n"
-"    color: #333333;  /* \u6df1\u8272\u6587\u5b57 */\n"
-"}\n"
-"\n"
-"/* \u5217\u8868\u9879 */\n"
-"QListWidget#history_list::item {\n"
-"    height: 50px;\n"
-"    padding: 8px 15px;\n"
-"    background: transparent;\n"
-"    border-bottom: 1px solid rgba(0, 0, 0, 0.05);\n"
-"    color: #333333;  /* \u6df1\u8272\u6587\u5b57 */\n"
-"}\n"
-"\n"
-"/* \u60ac\u505c\u6548\u679c */\n"
-"QListWidget#history_list::item:hover {\n"
-"    background: rgba(0, 0, 0, 0.05);\n"
-"    border-radius: 4px;\n"
-"}\n"
-"\n"
-"/* \u9009\u4e2d\u6548\u679c */\n"
-"QListWidget#history_list::item:selected {\n"
-"    background: #0078D4;\n"
-"    color: white;\n"
-"    border-radius: 4px;\n"
-"}\n"
-"\n"
-"/* \u6309\u94ae\u6837\u5f0f */\n"
-" QPushButton {\n"
-""
-                        "padding: 8px;\n"
-"border: none;\n"
-"background: transparent;\n"
-"            }\n"
-"\n"
-"QPushButton:hover {\n"
-"background: rgba(200, 200, 200, 100);\n"
-"border-radius: 15px;\n"
-" }")
 
         self.gridLayout.addWidget(self.history_list, 1, 0, 1, 1)
 
@@ -349,6 +309,5 @@ class Ui_SimpleClipboardHistory(object):
     def retranslateUi(self, SimpleClipboardHistory):
         SimpleClipboardHistory.setWindowTitle(QCoreApplication.translate("SimpleClipboardHistory", u"\u526a\u8d34\u677f\u5386\u53f2\u8bb0\u5f55", None))
         self.search_box.setPlaceholderText(QCoreApplication.translate("SimpleClipboardHistory", u"\u641c\u7d22\u526a\u8d34\u677f\u5386\u53f2...", None))
-        self.show_favorite_button.setText("")
     # retranslateUi
 
