@@ -29,7 +29,6 @@ class ClipboardItem(Base):
     id = Column(Integer, primary_key=True)
     content = Column(String(5000))
     timestamp = Column(DateTime, default=datetime.now)
-    is_favorite = Column(Boolean, default=False)
     tags = Column(String(200), default="")
 
     def __repr__(self):
