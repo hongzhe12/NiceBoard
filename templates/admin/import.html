@@ -1,0 +1,12 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<h2>导入数据</h2>
+<form action="" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.file.label }}<br>
+        {{ form.file(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary">上传</button>
+</form>
+{% endblock %}

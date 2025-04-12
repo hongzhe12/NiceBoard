@@ -1,13 +1,18 @@
+import os
+from datetime import datetime
+from pathlib import Path
+
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Index
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-import os
-from pathlib import Path
 
 
 # 获取数据库路径（返回字符串）
 def get_db_path():
+    """
+    获取数据库文件的路径，如果应用数据目录不存在则创建它。
+    :return: 数据库文件的完整路径字符串
+    """
     appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
     appdata_dir.mkdir(exist_ok=True)
     return str(appdata_dir / 'clipboard_history.db')
@@ -15,7 +20,6 @@ def get_db_path():
 
 # 获取数据库文件路径
 file_path = get_db_path()
-
 # 初始化数据库
 Base = declarative_base()
 engine = create_engine(f'sqlite:///{file_path}', echo=False)
@@ -29,7 +33,6 @@ class ClipboardItem(Base):
     id = Column(Integer, primary_key=True)
     content = Column(String(5000))
     timestamp = Column(DateTime, default=datetime.now)
-    is_favorite = Column(Boolean, default=False)
     tags = Column(String(200), default="")
 
     def __repr__(self):
@@ -37,7 +40,7 @@ class ClipboardItem(Base):
 
 
 # 为content字段添加索引
-Index('idx_clipboard_content', ClipboardItem.content)
+idx_clipboard_content = Index('idx_clipboard_content', ClipboardItem.content)
 
 
 class AppSettings(Base):
@@ -51,7 +54,9 @@ class AppSettings(Base):
 
 
 def init_settings():
-    """初始化默认设置"""
+    """
+    初始化应用程序的默认设置，如果设置表为空则插入默认设置。
+    """
     session = Session()
     try:
         if not session.query(AppSettings).first():
@@ -72,7 +77,10 @@ init_settings()
 
 
 def get_settings():
-    """快捷获取当前设置"""
+    """
+    快捷获取当前应用程序的设置。
+    :return: AppSettings对象，如果没有则返回None
+    """
     session = Session()
     try:
         return session.query(AppSettings).first()
@@ -81,15 +89,21 @@ def get_settings():
 
 
 def update_settings(**kwargs):
-    """更新设置项"""
+    """
+    更新应用程序的设置项。
+    :param kwargs: 要更新的设置项和对应的值
+    :return: 更新成功返回True，失败返回False
+    """
     print(f"更新设置: hotkey={kwargs.get('hotkey')}, max_history={kwargs.get('max_history')}")
     session = Session()
     try:
         settings = session.query(AppSettings).first()
-        for key, value in kwargs.items():
-            setattr(settings, key, value)
-        session.commit()
-        return True
+        if settings:
+            for key, value in kwargs.items():
+                setattr(settings, key, value)
+            session.commit()
+            return True
+        return False
     except Exception as e:
         session.rollback()
         print(f"更新设置失败: {e}")
@@ -99,7 +113,9 @@ def update_settings(**kwargs):
 
 
 def auto_clean_history():
-    """自动清理历史记录，保持不超过最大限制"""
+    """
+    自动清理剪贴板历史记录，保持记录数量不超过最大限制。
+    """
     session = Session()
     try:
         settings = session.query(AppSettings).first()
@@ -134,7 +150,7 @@ def auto_clean_history():
 
 def find_tags_by_content(content):
     """
-    根据剪贴板项的内容查找对应的标签
+    根据剪贴板项的内容查找对应的标签。
     :param content: 剪贴板项的内容
     :return: 找到的剪贴板项的标签，如果未找到则返回空字符串
     """
@@ -150,9 +166,10 @@ def find_tags_by_content(content):
     finally:
         session.close()
 
+
 def update_tags_for_clipboard_item(content, new_tags):
     """
-    更新指定剪贴板项的标签
+    更新指定剪贴板项的标签。
     :param content: 剪贴板项的内容
     :param new_tags: 新的标签，可以是单个标签字符串或多个标签用逗号分隔的字符串
     """
@@ -174,7 +191,11 @@ def update_tags_for_clipboard_item(content, new_tags):
 
 
 def get_clipboard_history(limit=50):
-    """从数据库加载历史记录"""
+    """
+    从数据库加载剪贴板历史记录。
+    :param limit: 要加载的记录数量上限，默认为50
+    :return: 剪贴板历史记录列表
+    """
     session = Session()
     try:
         items = session.query(ClipboardItem) \
@@ -186,8 +207,12 @@ def get_clipboard_history(limit=50):
         session.close()
 
 
-def add_clipboard_item(text):
-    """添加新的剪贴板记录"""
+def add_clipboard_item(text,tags = ""):
+    """
+    添加新的剪贴板记录，如果记录已存在则不添加。
+    :param text: 剪贴板记录的内容
+    :return: 添加成功返回True，记录已存在或失败返回False
+    """
     session = Session()
     try:
         # 检查是否已存在相同内容
@@ -196,7 +221,7 @@ def add_clipboard_item(text):
             .first()
         if not exists:
             # 插入新记录
-            new_item = ClipboardItem(content=text)
+            new_item = ClipboardItem(content=text,tags = tags)
             session.add(new_item)
             session.commit()
             return True
@@ -210,7 +235,11 @@ def add_clipboard_item(text):
 
 
 def delete_clipboard_item(content):
-    """删除指定内容的剪贴板记录"""
+    """
+    删除指定内容的剪贴板记录。
+    :param content: 要删除的剪贴板记录的内容
+    :return: 删除成功返回True，失败返回False
+    """
     session = Session()
     try:
         session.query(ClipboardItem) \
@@ -227,7 +256,10 @@ def delete_clipboard_item(content):
 
 
 def clear_all_clipboard_history():
-    """清空所有剪贴板历史记录"""
+    """
+    清空所有剪贴板历史记录。
+    :return: 清空成功返回True，失败返回False
+    """
     session = Session()
     try:
         session.query(ClipboardItem).delete()
@@ -242,7 +274,12 @@ def clear_all_clipboard_history():
 
 
 def filter_clipboard_history(text, limit=50):
-    """根据搜索文本过滤剪贴板历史记录，优先按标签搜索，其次按内容搜索"""
+    """
+    根据搜索文本过滤剪贴板历史记录，优先按标签搜索，其次按内容搜索。
+    :param text: 搜索文本
+    :param limit: 要返回的记录数量上限，默认为50
+    :return: 过滤后的剪贴板历史记录列表
+    """
     session = Session()
     try:
         # 优先按标签搜索
