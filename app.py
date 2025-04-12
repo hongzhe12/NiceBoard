@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import threading
 
 from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor
@@ -19,6 +20,9 @@ log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
 import resources_rc
+
+
+from backen import app as backend_app
 
 # 配置日志记录
 logging.basicConfig(
@@ -58,7 +62,6 @@ class ClipboardHistoryApp(QMainWindow):
         hotkey = hotkey.replace('alt', '<alt>')
         hotkey = hotkey.replace('ctrl', '<ctrl>')
 
-        print("实际传递给HotkeyManager的hotkey:", hotkey)
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
@@ -84,17 +87,7 @@ class ClipboardHistoryApp(QMainWindow):
         # 显示启动通知（不需要常驻托盘图标）
         self.show_startup_notification()
 
-        # 为每一项注册提示
-        # self.add_tooltip()
 
-    # def add_tooltip(self):
-    #     for row in range(self.ui.history_list.count()):
-    #         item = self.ui.history_list.item(row)
-    #         item.setToolTip(item.text())
-    #
-    #
-    #         # 强制更新
-    #         self.ui.history_list.viewport().update()
 
 
 
@@ -467,8 +460,15 @@ class ClipboardHistoryApp(QMainWindow):
             super().closeEvent(event)
 
 
+# 使用多线程来运行 Flask 后端
+def run_backend():
+    backend_app.run(port=5000, debug=False)
 
 if __name__ == "__main__":
+    # 创建并启动后台线程
+    backend_thread = threading.Thread(target=run_backend, daemon=True)
+    backend_thread.start()
+
     app = QApplication(sys.argv)
 
     # 全局样式
