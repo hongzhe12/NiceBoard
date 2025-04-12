@@ -1,32 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>SimpleClipboardHistory</class>
- <widget class="QMainWindow" name="SimpleClipboardHistory">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>300</width>
-    <height>393</height>
-   </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>16777215</height>
-   </size>
-  </property>
-  <property name="windowTitle">
-   <string>剪贴板历史记录</string>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">/* 主窗口样式 - 改进的亚克力毛玻璃效果 */
+/* 主窗口样式 - 改进的亚克力毛玻璃效果 */
 SimpleClipboardHistory {
     background: rgba(245, 245, 245, 0.85);  /* 提高不透明度 */
     border-radius: 12px;
@@ -48,7 +20,7 @@ QWidget#header {
 
 /* 标题文本 */
 QLabel#title_label {
-    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: #333333;  /* 改为深色文字 */
@@ -89,6 +61,27 @@ QListWidget#history_list {
     color: #333333;  /* 深色文字 */
 }
 
+/* 列表项 */
+QListWidget#history_list::item {
+    height: 40px;
+    padding: 8px 15px;
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    color: #333333;  /* 深色文字 */
+}
+
+/* 悬停效果 */
+QListWidget#history_list::item:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+/* 选中效果 */
+QListWidget#history_list::item:selected {
+    background: #0078D4;
+    color: white;
+    border-radius: 4px;
+}
 
 
 /* ================= 垂直滚动条 ================= */
@@ -197,6 +190,25 @@ QPushButton#btn_delete:pressed {
     background-color: #d32f2f;
 }
 
+
+
+/* 确保背景透明 */
+QListWidget {
+    background: transparent;
+    outline: none;
+}
+
+QListWidget::item {
+    background: white;
+    border-radius: 5px;
+    margin: 3px;
+}
+
+QListWidget::item:hover {
+    background: #f0f7ff;
+}
+
+
 /* 系统托盘菜单样式 */
 QMenu {
     background-color: #f5f5f5;
@@ -238,129 +250,4 @@ SettingsWindow QSpinBox {
 
 SettingsWindow QCheckBox {
     spacing: 5px;
-}    </string>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLineEdit" name="search_box">
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <property name="placeholderText">
-         <string>搜索剪贴板历史...</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="show_favorite_button">
-        <property name="styleSheet">
-         <string notr="true">/* 按钮样式 */
- QPushButton {
-padding: 8px;
-border: none;
-background: transparent;
-            }
-
-QPushButton:hover {
-background: rgba(200, 200, 200, 100);
-border-radius: 16px;
- }</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset resource="resources.qrc">
-          <normaloff>:/icons/开关 关.svg</normaloff>
-          <normalon>:/icons/开关 开.svg</normalon>
-          <activeon>:/icons/开关 开.svg</activeon>:/icons/开关 关.svg</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>32</width>
-          <height>32</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="1" column="0">
-     <widget class="CustomListWidget" name="history_list">
-      <property name="font">
-       <font>
-        <family>微软雅黑</family>
-        <pointsize>-1</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* 历史列表 - 提高对比度 */
-QListWidget#history_list {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    padding: 0;
-    outline: none;
-    font-size: 13px;
-    margin: 12px;
-    color: #333333;  /* 深色文字 */
 }
-
-/* 列表项 */
-QListWidget#history_list::item {
-    height: 50px;
-    padding: 8px 15px;
-    background: transparent;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    color: #333333;  /* 深色文字 */
-}
-
-/* 悬停效果 */
-QListWidget#history_list::item:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-}
-
-/* 选中效果 */
-QListWidget#history_list::item:selected {
-    background: #0078D4;
-    color: white;
-    border-radius: 4px;
-}
-
-/* 按钮样式 */
- QPushButton {
-padding: 8px;
-border: none;
-background: transparent;
-            }
-
-QPushButton:hover {
-background: rgba(200, 200, 200, 100);
-border-radius: 15px;
- }</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QListWidget" name="history_list"/>
-    </item>
-   </layout>
-  </widget>
- </widget>
- <customwidgets>
-  <customwidget>
-   <class>CustomListWidget</class>
-   <extends>QListWidget</extends>
-   <header>customlistwidget.h</header>
-  </customwidget>
- </customwidgets>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
- <connections/>
-</ui>
