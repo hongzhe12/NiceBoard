@@ -1,12 +1,12 @@
 import logging
 import os
 import sys
-import threading
 
 from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
-    QDialog, QToolTip
+    QDialog
+from waitress import serve
 
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
@@ -22,15 +22,11 @@ log_file = os.path.join(log_dir, 'app.log')
 import resources_rc
 
 
-from backen import app as backend_app
 
-# 配置日志记录
-logging.basicConfig(
-    filename=log_file,
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
+# 获取当前脚本所在的路径
+current_path = os.path.dirname(os.path.abspath(__file__))
+# 将当前路径设置为工作路径
+os.chdir(current_path)
 
 class ClipboardHistoryApp(QMainWindow):
     def __init__(self):
@@ -462,12 +458,18 @@ class ClipboardHistoryApp(QMainWindow):
 
 # 使用多线程来运行 Flask 后端
 def run_backend():
-    backend_app.run(port=5000, debug=False)
+    serve(
+        backend_app,
+        host='0.0.0.0',
+        port=5000,
+        threads=8,  # 线程数（适合I/O密集型）
+        channel_timeout = 60
+    )
 
 if __name__ == "__main__":
     # 创建并启动后台线程
-    backend_thread = threading.Thread(target=run_backend, daemon=True)
-    backend_thread.start()
+    # backend_thread = threading.Thread(target=run_backend, daemon=True)
+    # backend_thread.start()
 
     app = QApplication(sys.argv)
 

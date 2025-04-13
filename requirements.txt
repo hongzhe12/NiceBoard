@@ -1,8 +1,0 @@
-fastapi==0.95.2
-pyperclip==1.8.2
-uvicorn==0.22.0
-websockets==11.0.3
-keyboard>=0.13.5
-pyside6>=6.8.3
-sqlalchemy>=2.0.40
-psutil
