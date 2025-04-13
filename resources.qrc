@@ -1,0 +1,11 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>icons/clipboard.svg</file>
+        <file>icons/favicon.ico</file>
+        <file>icons/收藏.svg</file>
+        <file>icons/未收藏.svg</file>
+        <file>icons/开关 开.svg</file>
+        <file>icons/开关 关.svg</file>
+    </qresource>
+</RCC>
