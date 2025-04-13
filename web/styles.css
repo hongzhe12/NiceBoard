@@ -1,0 +1,141 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background: #4CAF50;
+    color: #fff;
+    padding: 60px 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+}
+
+header p {
+    font-size: 1.2em;
+}
+
+header .btn {
+    background: #fff;
+    color: #4CAF50;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+header .btn:hover {
+    background: #f1f1f1;
+}
+
+.features {
+    background: #f9f9f9;
+    padding: 40px 0;
+}
+
+.features h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.feature-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.feature-item {
+    flex: 1 1 30%;
+    background: #fff;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.feature-item img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.feature-item h3 {
+    margin-top: 0;
+}
+
+.download {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.download h2 {
+    margin-bottom: 20px;
+}
+
+.download .btn {
+    background: #4CAF50;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.download .btn:hover {
+    background: #45a049;
+}
+
+.download .install-steps {
+    text-align: left;
+    margin: 0 auto;
+    padding: 0;
+    list-style-position: inside;
+    max-width: 600px;
+    text-align: center;
+}
+
+.download .install-steps li {
+    margin-bottom: 10px;
+}
+
+.community {
+    background: #f9f9f9;
+    padding: 40px 0;
+    text-align: center;
+}
+
+.community h2 {
+    margin-bottom: 20px;
+}
+
+.community .btn {
+    background: #4CAF50;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.community .btn:hover {
+    background: #45a049;
+}
+
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+}
