@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}创建剪贴板项{% endblock %}
+{% block header %}创建新剪贴板项{% endblock %}
+{% block content %}
+    <form action="" method="post" class="w-50">
+        <div class="mb-3">
+            <label for="content" class="form-label">内容:</label>
+            <textarea id="content" name="content" class="form-control" rows="5"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="tags" class="form-label">标签（以逗号分隔）:</label>
+            <input type="text" id="tags" name="tags" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">提交</button>
+    </form>
+{% endblock %}

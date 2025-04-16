@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}剪贴板项详情{% endblock %}
+{% block header %}剪贴板项详情{% endblock %}
+{% block content %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title mb-4">剪贴板项详情</h2>
+            <div class="mb-4">
+                <h5 class="mb-2">ID: {{ item.id }}</h5>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">内容:</label>
+                    <div class="border rounded p-3 bg-light">
+                        <pre class="mb-0">{{ item.content }}</pre>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">标签:</label>
+                    <div class="p-2">{{ item.tags }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">时间戳:</label>
+                    <div class="p-2">{{ item.timestamp }}</div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('clipboard_list') }}" class="btn btn-secondary">返回列表</a>
+                <a href="{{ url_for('clipboard_update', id=item.id) }}" class="btn btn-warning">编辑</a>
+                <form action="{{ url_for('clipboard_delete', id=item.id) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

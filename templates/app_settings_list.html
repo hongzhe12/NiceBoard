@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}应用设置列表{% endblock %}
+{% block header %}应用设置列表{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">应用设置</h2>
+        <a href="{{ url_for('settings_create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> 创建新设置
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>键</th>
+                            <th>值</th>
+                            <th class="text-end">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for setting in settings %}
+                            <tr>
+                                <td>{{ setting.id }}</td>
+                                <td>{{ setting.key }}</td>
+                                <td>{{ setting.value }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('settings_detail', id=setting.id) }}" class="btn btn-outline-info">详情</a>
+                                        <a href="{{ url_for('settings_update', id=setting.id) }}" class="btn btn-outline-warning">编辑</a>
+                                        <form action="{{ url_for('settings_delete', id=setting.id) }}" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-outline-danger">删除</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

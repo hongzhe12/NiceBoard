@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}App Settings List{% endblock %}
+{% block header %}App Settings{% endblock %}
+{% block content %}
+    <a href="{{ url_for('settings_create') }}">Create New Setting</a>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Actions</th>
+        </tr>
+        {% for setting in settings %}
+            <tr>
+                <td>{{ setting.id }}</td>
+                <td>{{ setting.key }}</td>
+                <td>{{ setting.value }}</td>
+                <td>
+                    <a href="{{ url_for('settings_detail', id=setting.id) }}">Detail</a>
+                    <form action="{{ url_for('settings_delete', id=setting.id) }}" method="post" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <a href="{{ url_for('settings_update', id=setting.id) }}">Update</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
