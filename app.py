@@ -3,10 +3,10 @@ import os
 import sys
 import threading
 
-from PySide6.QtCore import Qt, QTimer, QEvent
-from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor
+from PySide6.QtCore import Qt, QTimer, QEvent, QUrl
+from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
-    QDialog, QToolTip
+    QDialog
 
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
@@ -20,7 +20,7 @@ log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
 import resources_rc
-
+from PySide6.QtCore import QThread, Signal
 
 from backend import app as backend_app
 
@@ -31,6 +31,17 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+
+class BackendThread(QThread):
+    # 信号用于通知主线程后台任务已启动
+    started_signal = Signal()
+
+    def run(self):
+        # 后台任务
+        # run_backend()
+        backend_app.run(port=5000, debug=False)
+        # 发出信号，表示后台任务已启动
+        self.started_signal.emit()
 
 class ClipboardHistoryApp(QMainWindow):
     def __init__(self):
@@ -87,8 +98,8 @@ class ClipboardHistoryApp(QMainWindow):
         # 显示启动通知（不需要常驻托盘图标）
         self.show_startup_notification()
 
-
-
+        # 后台线程
+        self.backend_thread = None
 
 
     def setup_system_tray(self):
@@ -112,14 +123,29 @@ class ClipboardHistoryApp(QMainWindow):
         history_action = tray_menu.addAction("查看剪贴板历史")
         history_action.triggered.connect(self.toggle_window)
 
+        backend_action = tray_menu.addAction("打开后台管理")
+        # 连接打开浏览器的信号槽
+        backend_action.triggered.connect(self.open_website)
 
         tray_menu.addSeparator()
         quit_action = tray_menu.addAction("退出")
         quit_action.triggered.connect(self.quit_application)
 
+
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self.on_tray_activated)
         self.tray_icon.show()
+
+    def open_website(self):
+        if self.backend_thread is None or not self.backend_thread.isRunning():
+            # 创建并启动后台线程
+            self.backend_thread = BackendThread()
+            self.backend_thread.start()
+
+        # 指定要打开的网站 URL
+        url = QUrl('http://127.0.0.1:5000')
+        # 使用 QDesktopServices 打开浏览器
+        QDesktopServices.openUrl(url)
 
     def on_tray_activated(self, reason):
         """处理托盘图标点击事件（更健壮版）"""
@@ -461,13 +487,11 @@ class ClipboardHistoryApp(QMainWindow):
 
 
 # 使用多线程来运行 Flask 后端
-def run_backend():
-    backend_app.run(port=5000, debug=False)
+# def run_backend():
+#     backend_app.run(port=5000, debug=False)
 
 if __name__ == "__main__":
-    # 创建并启动后台线程
-    backend_thread = threading.Thread(target=run_backend, daemon=True)
-    backend_thread.start()
+
 
     app = QApplication(sys.argv)
 

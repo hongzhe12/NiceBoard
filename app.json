@@ -56,6 +56,18 @@
   {
    "optionDest": "bootloader_ignore_signals",
    "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/hongz/PycharmProjects/NiceBoard/static;static/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/hongz/PycharmProjects/NiceBoard/templates;templates/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/hongz/PycharmProjects/NiceBoard/uploads;uploads/"
   }
  ],
  "nonPyinstallerOptions": {
