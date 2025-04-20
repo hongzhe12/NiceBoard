@@ -1,6 +1,15 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
-from sqlalchemy.orm import sessionmaker
+import io
+import os
 from datetime import datetime
+
+import pandas as pd
+from flask import Flask, render_template
+from flask import redirect, url_for, flash
+from flask import request  # 确保导入了 request
+from flask import send_file
+from sqlalchemy.orm import sessionmaker
+from werkzeug.utils import secure_filename
+
 from models import ClipboardItem, AppSettings, engine
 
 # 初始化Flask应用
@@ -20,7 +29,84 @@ session = Session()
 def index():
     return redirect(url_for('clipboard_list'))
 
-from flask import request  # 确保导入了 request
+
+# 配置文件上传的路径
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
+
+
+# 检查文件扩展名是否允许
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/clipboard/import', methods=['GET', 'POST'])
+def clipboard_import():
+    """导入Excel文件中的ClipboardItems"""
+    if request.method == 'POST':
+        # 获取上传的文件
+        file = request.files.get('file')
+
+        if file and allowed_file(file.filename):
+            # 保证文件名安全
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+
+            try:
+                # 使用pandas读取Excel文件
+                df = pd.read_excel(filepath)
+
+                # 假设Excel中有 'content' 和 'tags' 两列
+                for _, row in df.iterrows():
+                    content = row['content']
+                    tags = row['tags'] if 'tags' in row else None
+
+                    # 将数据保存到数据库
+                    new_item = ClipboardItem(content=content, tags=tags, timestamp=datetime.now())
+                    session.add(new_item)
+                session.commit()
+
+                flash("导入成功")
+            except Exception as e:
+                flash(f"导入失败: {e}")
+
+            return redirect(url_for('clipboard_list'))
+
+        else:
+            flash("请上传有效的Excel文件")
+            return redirect(url_for('clipboard_import'))
+
+    return render_template('clipboard_import.html')
+
+
+@app.route('/clipboard/export')
+def clipboard_export():
+    # 使用 session 查询数据
+    session = Session()
+    items = session.query(ClipboardItem).all()
+
+    # 构建 DataFrame
+    df = pd.DataFrame([{
+        'ID': item.id,
+        '内容': item.content,
+        '标签': item.tags,
+        '时间戳': item.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    } for item in items])
+
+    # 写入到内存中的 Excel 文件
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='剪贴板')
+
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name='剪贴板导出.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
 
 @app.route('/clipboard/list', methods=['GET'])
 def clipboard_list():
@@ -56,6 +142,7 @@ def clipboard_list():
         pagination_range=pagination_range
     )
 
+
 @app.route('/clipboard/create', methods=['GET', 'POST'])
 def clipboard_create():
     """创建新的 ClipboardItem"""
@@ -78,6 +165,7 @@ def clipboard_create():
 
     return render_template('clipboard_create.html')
 
+
 @app.route('/clipboard/detail/<int:id>', methods=['GET'])
 def clipboard_detail(id):
     """查看指定 ClipboardItem 的详情"""
@@ -86,6 +174,7 @@ def clipboard_detail(id):
         flash("记录不存在")
         return redirect(url_for('clipboard_list'))
     return render_template('clipboard_detail.html', item=item)
+
 
 @app.route('/clipboard/update/<int:id>', methods=['GET', 'POST'])
 def clipboard_update(id):
@@ -115,6 +204,7 @@ def clipboard_update(id):
 
     return render_template('clipboard_update.html', item=item)
 
+
 @app.route('/clipboard/delete/<int:id>', methods=['POST'])
 def clipboard_delete(id):
     """删除指定 ClipboardItem"""
@@ -127,6 +217,7 @@ def clipboard_delete(id):
     session.commit()
     flash("删除成功")
     return redirect(url_for('clipboard_list'))
+
 
 @app.route('/clipboard/search', methods=['GET'])
 def clipboard_search():
@@ -158,6 +249,7 @@ def clipboard_search():
         query=query
     )
 
+
 # ------------------------------
 # AppSettings 功能
 # ------------------------------
@@ -167,6 +259,7 @@ def settings_list():
     """显示所有 AppSettings 的列表"""
     settings = session.query(AppSettings).all()
     return render_template('app_settings_list.html', settings=settings)
+
 
 @app.route('/settings/create', methods=['GET', 'POST'])
 def settings_create():
@@ -187,6 +280,7 @@ def settings_create():
 
     return render_template('app_settings_create.html')
 
+
 @app.route('/settings/detail/<int:id>', methods=['GET'])
 def settings_detail(id):
     """查看指定 AppSettings 的详情"""
@@ -195,6 +289,7 @@ def settings_detail(id):
         flash("记录不存在")
         return redirect(url_for('settings_list'))
     return render_template('app_settings_detail.html', setting=setting)
+
 
 @app.route('/settings/update/<int:id>', methods=['GET', 'POST'])
 def settings_update(id):
@@ -219,6 +314,7 @@ def settings_update(id):
         return redirect(url_for('settings_list'))
 
     return render_template('app_settings_update.html', setting=setting)
+
 
 @app.route('/settings/delete/<int:id>', methods=['POST'])
 def settings_delete(id):

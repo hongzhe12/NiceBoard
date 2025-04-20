@@ -5,6 +5,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/list.css') }}">
 
+
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-3 mb-4">
         <!-- 左侧搜索区域 -->
         <form class="d-flex flex-grow-1 gap-2" action="{{ url_for('clipboard_search') }}" method="get">
@@ -14,11 +15,21 @@
             <a href="{{ url_for('clipboard_search') }}" class="btn btn-secondary custom-btn">清除</a>
         </form>
 
-        <!-- 右侧创建按钮 -->
-        <a href="{{ url_for('clipboard_create') }}" class="btn btn-success custom-btn">
-            新建
-        </a>
+        <!-- 右侧操作按钮组 -->
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                操作
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('clipboard_create') }}">✏️ 新建剪贴</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('clipboard_import') }}">📥 导入 Excel</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('clipboard_export') }}">📤 导出为 Excel</a></li>
+            </ul>
+        </div>
+
     </div>
+
 
     <div class="card shadow-sm">
         <div class="card-body">
@@ -42,9 +53,12 @@
                             <td>{{ item.timestamp }}</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ url_for('clipboard_detail', id=item.id) }}" class="btn btn-info custom-btn">详情</a>
-                                    <a href="{{ url_for('clipboard_update', id=item.id) }}" class="btn btn-warning custom-btn">编辑</a>
-                                    <form action="{{ url_for('clipboard_delete', id=item.id) }}" method="post" style="display:inline;">
+{#                                    <a href="{{ url_for('clipboard_detail', id=item.id) }}"#}
+{#                                       class="btn btn-info custom-btn">详情</a>#}
+{#                                    <a href="{{ url_for('clipboard_update', id=item.id) }}"#}
+{#                                       class="btn btn-warning custom-btn">编辑</a>#}
+                                    <form action="{{ url_for('clipboard_delete', id=item.id) }}" method="post"
+                                          style="display:inline;">
                                         <button type="submit" class="btn btn-danger custom-btn">删除</button>
                                     </form>
                                 </div>
@@ -62,7 +76,8 @@
         <ul class="pagination justify-content-center pagination-lg">
             <!-- 上一页按钮 -->
             <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                <a class="page-link rounded-start" href="{{ url_for('clipboard_list', page=current_page - 1) }}" tabindex="-1" aria-disabled="true">
+                <a class="page-link rounded-start" href="{{ url_for('clipboard_list', page=current_page - 1) }}"
+                   tabindex="-1" aria-disabled="true">
                     <i class="bi bi-chevron-left"></i> 上一页
                 </a>
             </li>
