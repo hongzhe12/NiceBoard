@@ -1,17 +1,20 @@
-{% extends "base.html" %}
-{% block title %}更新剪贴板项{% endblock %}
-{% block header %}更新剪贴板项{% endblock %}
 {% block content %}
-    <form action="" method="post" class="w-50">
-        <div class="mb-3">
-            <label for="content" class="form-label">内容:</label>
-            <textarea id="content" name="content" class="form-control" rows="5">{{ item.content }}</textarea>
-        </div>
-        <div class="mb-3">
-            <label for="tags" class="form-label">标签（以逗号分隔）:</label>
-            <input type="text" id="tags" name="tags" class="form-control" value="{{ item.tags }}">
-        </div>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clipboard_update.css') }}">
+    <div class="container d-flex justify-content-center">
+        <form action="" method="post" class="clipboard-form">
+    <div class="mb-3">
+        <label for="content" class="form-label">内容:</label>
+        <textarea id="content" name="content" class="form-control">{{ item.content }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="tags" class="form-label">标签（以逗号分隔）:</label>
+        <input type="text" id="tags" name="tags" class="form-control" value="{{ item.tags }}">
+    </div>
+    <div class="form-actions">
         <a href="{{ url_for('clipboard_list') }}" class="btn btn-secondary">返回</a>
         <button type="submit" class="btn btn-primary">提交</button>
-    </form>
+    </div>
+</form>
+
+    </div>
 {% endblock %}

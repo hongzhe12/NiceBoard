@@ -1,56 +1,100 @@
-/* 分页控件样式 */
-.pagination {
-    display: flex;
-    padding-left: 0;
-    list-style: none;
-    border-radius: 0.375rem;
+/* 自定义按钮样式 */
+.custom-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 40px;
+    line-height: 1.2;
+    white-space: nowrap;
+    min-width: 80px; /* 确保按钮最小宽度一致 */
 }
 
-.pagination .page-item {
-    margin: 0;
+.custom-btn:hover {
+    cursor: pointer;
+    opacity: 0.9;
 }
 
-.pagination .page-link {
-    position: relative;
-    display: block;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: #0d6efd; /* 链接颜色 */
-    background-color: #fff; /* 背景颜色 */
-    border: 1px solid #dee2e6; /* 边框颜色 */
-    transition: all 0.3s ease;
+.custom-btn:active {
+    opacity: 1;
 }
 
-.pagination .page-link:hover {
-    color: #fff; /* 悬停文字颜色 */
-    background-color: #0d6efd; /* 悬停背景颜色 */
-    border-color: #0d6efd; /* 悬停边框颜色 */
-    transform: translateY(-2px); /* 悬停时轻微上移 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+.btn-primary.custom-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
 }
 
-.pagination .page-item.active .page-link {
-    z-index: 3;
-    color: #fff; /* 当前页文字颜色 */
-    background-color: #0d6efd; /* 当前页背景颜色 */
-    border-color: #0d6efd; /* 当前页边框颜色 */
+.btn-secondary.custom-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
 }
 
-.pagination .page-item.disabled .page-link {
-    color: #6c757d; /* 禁用状态文字颜色 */
-    pointer-events: none; /* 禁止点击 */
-    background-color: #fff; /* 禁用状态背景颜色 */
-    border-color: #dee2e6; /* 禁用状态边框颜色 */
+.btn-success.custom-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
 }
 
-/* 圆角效果 */
-.pagination .page-item:first-child .page-link {
-    border-top-left-radius: 0.375rem;
-    border-bottom-left-radius: 0.375rem;
+.btn-info.custom-btn {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
 }
 
-.pagination .page-item:last-child .page-link {
-    border-top-right-radius: 0.375rem;
-    border-bottom-right-radius: 0.375rem;
+.btn-warning.custom-btn {
+    background-color: #ffc107;
+    color: white;
+    border: none;
+}
+
+.btn-danger.custom-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.custom-btn i {
+    margin-right: 5px;
+}
+
+/* 调整表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+thead {
+    background-color: #f8f9fa;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+table .text-end {
+    text-align: right;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.page-link {
+    font-size: 14px;
+    padding: 8px 16px;
+}
+
+.page-item.disabled .page-link {
+    background-color: #e9ecef;
+    cursor: not-allowed;
 }

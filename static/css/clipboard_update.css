@@ -1,0 +1,104 @@
+/* 表单容器居中且最大宽度限制 */
+form {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* 标签样式 */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+/* 输入框和文本区域统一风格 */
+form.clipboard-form {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+form.clipboard-form .form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+form.clipboard-form .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease-in-out;
+}
+
+form.clipboard-form .form-control:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+form.clipboard-form textarea.form-control {
+    min-height: 180px;
+    resize: vertical;
+}
+form.clipboard-form .form-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+form.clipboard-form .btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+form.clipboard-form .btn-primary {
+    background-color: #2563eb;
+    color: white;
+}
+
+form.clipboard-form .btn-primary:hover {
+    background-color: #1e40af;
+}
+
+form.clipboard-form .btn-secondary {
+    background-color: #e5e7eb;
+    color: #111827;
+}
+
+form.clipboard-form .btn-secondary:hover {
+    background-color: #d1d5db;
+}
+
+/* 返回按钮风格 */
+.btn-outline-secondary {
+    border: 1px solid #ced4da;
+    color: #333;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #e2e6ea;
+    color: #000;
+}
+
+/* 提交按钮风格 */
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: #1e40af;
+    border-color: #1e40af;
+}

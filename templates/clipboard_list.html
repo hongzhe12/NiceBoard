@@ -5,18 +5,18 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/list.css') }}">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3">
-        <form class="d-flex flex-grow-1" action="{{ url_for('clipboard_search') }}" method="get">
-            <input class="form-control me-2 py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-3 mb-4">
+        <!-- 左侧搜索区域 -->
+        <form class="d-flex flex-grow-1 gap-2" action="{{ url_for('clipboard_search') }}" method="get">
+            <input class="form-control py-2 px-3 rounded shadow-sm border border-gray-300 focus:outline-none focus:ring focus:ring-blue-300"
                    type="search" placeholder="搜索内容或标签" aria-label="Search" name="q">
-            <button class="btn btn-primary py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                    type="submit">
-                <i class="bi bi-search me-1"></i>
-            </button>
-            <a href="{{ url_for('clipboard_search') }}" class="btn btn-secondary ms-2 py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">清除</a>
+            <button class="btn btn-primary custom-btn" type="submit">搜索</button>
+            <a href="{{ url_for('clipboard_search') }}" class="btn btn-secondary custom-btn">清除</a>
         </form>
-        <a href="{{ url_for('clipboard_create') }}" class="btn btn-primary btn-lg btn-hover-effect flex-shrink-0">
-            <i class="bi bi-plus-circle me-1"></i> 创建新项目
+
+        <!-- 右侧创建按钮 -->
+        <a href="{{ url_for('clipboard_create') }}" class="btn btn-success custom-btn">
+            新建
         </a>
     </div>
 
@@ -35,21 +35,17 @@
                     </thead>
                     <tbody>
                     {% for item in items %}
-                        <tr>
+                        <tr onclick="window.location.href='{{ url_for('clipboard_detail', id=item.id) }}'">
                             <td>{{ item.id }}</td>
                             <td class="text-truncate" style="max-width: 200px;">{{ item.content }}</td>
                             <td>{{ item.tags }}</td>
                             <td>{{ item.timestamp }}</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ url_for('clipboard_detail', id=item.id) }}"
-                                       class="btn btn-info btn-sm btn-hover-effect">详情</a>
-                                    <a href="{{ url_for('clipboard_update', id=item.id) }}"
-                                       class="btn btn-warning btn-sm btn-hover-effect">编辑</a>
-                                    <form action="{{ url_for('clipboard_delete', id=item.id) }}" method="post"
-                                          style="display:inline;">
-                                        <button type="submit" class="btn btn-danger btn-sm btn-hover-effect">删除
-                                        </button>
+                                    <a href="{{ url_for('clipboard_detail', id=item.id) }}" class="btn btn-info custom-btn">详情</a>
+                                    <a href="{{ url_for('clipboard_update', id=item.id) }}" class="btn btn-warning custom-btn">编辑</a>
+                                    <form action="{{ url_for('clipboard_delete', id=item.id) }}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger custom-btn">删除</button>
                                     </form>
                                 </div>
                             </td>
@@ -66,8 +62,7 @@
         <ul class="pagination justify-content-center pagination-lg">
             <!-- 上一页按钮 -->
             <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                <a class="page-link rounded-start" href="{{ url_for('clipboard_list', page=current_page - 1) }}"
-                   tabindex="-1" aria-disabled="true">
+                <a class="page-link rounded-start" href="{{ url_for('clipboard_list', page=current_page - 1) }}" tabindex="-1" aria-disabled="true">
                     <i class="bi bi-chevron-left"></i> 上一页
                 </a>
             </li>
