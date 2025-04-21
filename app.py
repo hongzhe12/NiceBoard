@@ -23,7 +23,7 @@ import resources_rc
 from PySide6.QtCore import QThread, Signal
 
 from backend import app as backend_app
-
+from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 # 配置日志记录
 logging.basicConfig(
     filename=log_file,
@@ -31,6 +31,23 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+# 搜索工作线程类
+class SearchWorker(QRunnable):
+    class Signals(QObject):
+        result = Signal(list)
+
+    def __init__(self, search_text):
+        super().__init__()
+        self.signals = self.Signals()
+        self.search_text = search_text
+
+    def run(self):
+        try:
+            results = filter_clipboard_history(self.search_text)
+            self.signals.result.emit(results)
+        except Exception as e:
+            logging.error(f"搜索出错: {e}")
+            self.signals.result.emit([])
 
 class BackendThread(QThread):
     # 信号用于通知主线程后台任务已启动
@@ -100,6 +117,12 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 后台线程
         self.backend_thread = None
+
+        # 添加以下内容
+        self._search_timer = QTimer()
+        self._search_timer.setSingleShot(True)
+        self._thread_pool = QThreadPool()
+        self._current_search_text = ""
 
 
     def setup_system_tray(self):
@@ -342,6 +365,57 @@ class ClipboardHistoryApp(QMainWindow):
 
             self.ui.history_list.addItem(list_item)
 
+    def filter_history(self, text):
+        # 保存当前搜索文本
+        self._current_search_text = text
+
+        # 停止之前的计时器
+        self._search_timer.stop()
+
+        # 如果是空搜索，直接加载全部历史
+        if not text.strip():
+            self._load_history()
+            return
+
+        # 显示加载状态
+        self.ui.history_list.clear()
+        self.ui.history_list.addItem("搜索中...")
+
+        # 设置300ms的防抖延迟
+        self._search_timer.timeout.connect(lambda: self._perform_search(text))
+        self._search_timer.start(300)
+
+    def _perform_search(self, text):
+        # 确保当前搜索文本仍然匹配
+        if text != self._current_search_text:
+            return
+
+        # 创建并启动搜索工作线程
+        worker = SearchWorker(text)
+        worker.signals.result.connect(self._update_search_results)
+        self._thread_pool.start(worker)
+
+    def _update_search_results(self, items):
+        # 再次检查搜索文本是否匹配
+        if not hasattr(self, '_current_search_text'):
+            return
+
+        self.ui.history_list.clear()
+
+        if not items:
+            self.ui.history_list.addItem("无搜索结果")
+            return
+
+        for item in items:
+            list_item = QListWidgetItem(item.content)
+            if item.tags:
+                list_item.setToolTip(f"标签：{item.tags}")
+            elif len(item.content) < 500:
+                list_item.setToolTip(item.content)
+            else:
+                list_item.setToolTip("内容过长，无法显示")
+            self.ui.history_list.addItem(list_item)
+
     def setMaskCornerRadius(self, radius):
         """ 创建圆角遮罩 """
         path = QPainterPath()
@@ -354,24 +428,11 @@ class ClipboardHistoryApp(QMainWindow):
         self.setMaskCornerRadius(10)
         super().resizeEvent(event)
 
-
     def _load_history(self, limit=50):
         """从数据库加载历史记录"""
         self.ui.history_list.clear()
         items = get_clipboard_history(limit)
-        for item in items:
-            # 创建列表项
-            list_item = QListWidgetItem(item.content)
-
-            # 如果有标签，设置提示
-            if item.tags:
-                list_item.setToolTip(f"标签：{item.tags}")
-            elif len(item.content) < 500:
-                list_item.setToolTip(item.content)
-            else:
-                list_item.setToolTip("内容过长，无法显示")
-
-            self.ui.history_list.addItem(list_item)
+        self._update_search_results(items)  # 重用相同的更新逻辑
 
     def _on_clipboard_change(self):
         """剪贴板内容变化时的处理"""

@@ -180,7 +180,7 @@ def update_tags_for_clipboard_item(content, new_tags):
             tag_list = [tag.strip() for tag in new_tags.split(',') if tag.strip()]
             item.tags = ','.join(sorted(tag_list))
             session.commit()
-            print(f"成功更新内容为 {content} 的剪贴板项的标签为: {new_tags}")
+            # print(f"成功更新内容为 {content} 的剪贴板项的标签为: {new_tags}")
         else:
             print(f"未找到内容为 {content} 的剪贴板项")
     except Exception as e:
