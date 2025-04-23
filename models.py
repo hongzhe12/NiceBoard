@@ -6,6 +6,24 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from utils import load_db_config
+
+# 获取数据库配置
+db_config = load_db_config()
+# 使用 get() 方法安全获取 'enable' 键的值，默认值为 False
+if db_config.get('enable', False):
+    db_url = f"postgresql://{db_config.get('username', '')}:{db_config.get('password', '')}@{db_config.get('host', '')}:{db_config.get('port', '')}/{db_config.get('db_name', '')}"
+else:
+    # 如果数据库未启用，使用本地 SQLite 数据库
+    appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
+    appdata_dir.mkdir(exist_ok=True)
+    db_url = f"sqlite:///{appdata_dir / 'clipboard_history.db'}"
+
+# 初始化数据库连接
+Base = declarative_base()
+engine = create_engine(db_url, echo=False)
+Session = sessionmaker(bind=engine)
+
 
 # 获取数据库路径（返回字符串）
 def get_db_path():
@@ -17,13 +35,12 @@ def get_db_path():
     appdata_dir.mkdir(exist_ok=True)
     return str(appdata_dir / 'clipboard_history.db')
 
-
-# 获取数据库文件路径
-file_path = get_db_path()
-# 初始化数据库
-Base = declarative_base()
-engine = create_engine(f'sqlite:///{file_path}', echo=False)
-Session = sessionmaker(bind=engine)
+# # 获取数据库文件路径
+# file_path = get_db_path()
+# # 初始化数据库
+# Base = declarative_base()
+# engine = create_engine(f'sqlite:///{file_path}', echo=False)
+# Session = sessionmaker(bind=engine)
 
 
 # 在ClipboardItem类中添加tags字段，并为content字段添加索引
@@ -48,8 +65,8 @@ class AppSettings(Base):
     __tablename__ = 'app_settings'
 
     id = Column(Integer, primary_key=True)
-    hotkey = Column(String(20), default='Alt+X')
-    max_history = Column(Integer, default=50)
+    hotkey = Column(String(20), default='f9')
+    max_history = Column(Integer, default=100000)
     auto_start = Column(Boolean, default=False)
 
 

@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-import threading
 
 from PySide6.QtCore import Qt, QTimer, QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
@@ -325,7 +324,7 @@ class ClipboardHistoryApp(QMainWindow):
             "好贴板已启动",
             f"按 {str(self.__hotkey)} 唤出面板",
             QSystemTrayIcon.Information,
-            3000
+            1000
         )
 
     def mousePressEvent(self, event):

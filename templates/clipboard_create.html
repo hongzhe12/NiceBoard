@@ -11,6 +11,8 @@
             <label for="tags" class="form-label">标签（以逗号分隔）:</label>
             <input type="text" id="tags" name="tags" class="form-control">
         </div>
+        <a href="{{ url_for('clipboard_list') }}" class="btn btn-secondary">返回列表</a>
         <button type="submit" class="btn btn-primary">提交</button>
     </form>
+
 {% endblock %}

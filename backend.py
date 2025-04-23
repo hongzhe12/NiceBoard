@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 
 import pandas as pd
+import pysnooper
+from bs4 import BeautifulSoup
 from flask import Flask, render_template
 from flask import redirect, url_for, flash
 from flask import request  # 确保导入了 request
@@ -39,10 +41,63 @@ ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/bookmark/import', methods=['GET', 'POST'])
+def bookmark_import():
+    """导入浏览器导出的书签 HTML 文件，存入 ClipboardItem"""
+    # 检查上传目录
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
+    if request.method == 'POST':
+        file = request.files.get('file')
+
+        if file and file.filename.endswith('.html'):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+
+            try:
+                # 用 BeautifulSoup 解析 HTML
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    soup = BeautifulSoup(f, 'html.parser')
+
+                links = soup.find_all('a')
+
+                for link in links:
+                    href = link.get('href')
+                    title = link.get_text()
+
+                    if href:
+                        # 这里将 href 存到 content，title 存到 tags
+                        new_item = ClipboardItem(
+                            content=href,
+                            tags=title,
+                            timestamp=datetime.now()
+                        )
+                        session.add(new_item)
+
+                session.commit()
+                flash("书签导入成功")
+
+            except Exception as e:
+                flash(f"导入失败: {e}")
+
+            return redirect(url_for('clipboard_list'))
+
+        else:
+            flash("请上传有效的 HTML 书签文件")
+            return redirect(url_for('bookmark_import'))
+
+    return render_template('bookmark_import.html')
+
 
 @app.route('/clipboard/import', methods=['GET', 'POST'])
 def clipboard_import():
     """导入Excel文件中的ClipboardItems"""
+    # 检查是否创建了上传文件夹
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
     if request.method == 'POST':
         # 获取上传的文件
         file = request.files.get('file')
@@ -328,6 +383,28 @@ def settings_delete(id):
     session.commit()
     flash("删除成功")
     return redirect(url_for('settings_list'))
+
+@app.route('/clipboard/cleanup')
+@pysnooper.snoop()
+def clipboard_cleanup():
+    """删除所有没有标签的剪贴板记录"""
+    try:
+        # 找出 tags 为空或全是空白的记录
+        items_to_delete = session.query(ClipboardItem).filter(
+            (ClipboardItem.tags == None) | (ClipboardItem.tags == "")
+        ).all()
+
+        count = len(items_to_delete)
+
+        for item in items_to_delete:
+            session.delete(item)
+
+        session.commit()
+        flash(f"已清理 {count} 条无标签内容")
+    except Exception as e:
+        flash(f"清理失败: {e}")
+
+    return redirect(url_for('clipboard_list'))
 
 
 if __name__ == '__main__':

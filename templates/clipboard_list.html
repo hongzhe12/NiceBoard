@@ -23,8 +23,10 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="{{ url_for('clipboard_create') }}">✏️ 新建剪贴</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('clipboard_import') }}">📥 导入 Excel</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('clipboard_export') }}">📤 导出为 Excel</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('clipboard_import') }}">📥 导入 Excel(.xlsx)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('bookmark_import') }}">📥 导入浏览器收藏夹(.html)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('clipboard_export') }}">📤 导出为 Excel(.xlsx)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('clipboard_cleanup') }}">✨清理无标签数据</a></li>
             </ul>
         </div>
 
