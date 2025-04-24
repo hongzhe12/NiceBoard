@@ -95,6 +95,7 @@ class ClipboardHistoryApp(QMainWindow):
         # 热键设置
         self.hotkey_manager = HotkeyManager()
         self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
+        self.hotkey_manager.esc_pressed.connect(self.hide)
         self.hotkey_manager.start_listen(hotkey=hotkey)
 
         # 加载历史记录

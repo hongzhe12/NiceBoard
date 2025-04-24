@@ -6,15 +6,18 @@ class HotkeyManager(QObject):
     """单按键触发的全局热键管理类"""
 
     hotkey_pressed = Signal()
+    esc_pressed = Signal()  # 新增：Esc键按下信号
 
     def __init__(self):
         super().__init__()
         self._listener = None
         self._trigger_key = None
+        self._esc_enabled = True  # 是否启用Esc键功能
 
-    def start_listen(self, hotkey: str = 'f9') -> None:
+    def start_listen(self, hotkey: str = 'f9',enable_esc: bool = True) -> None:
         """启动热键监听"""
         self.stop_listen()  # 确保先停止现有监听
+        self._esc_enabled = enable_esc
 
         # 解析单按键
         try:
@@ -42,6 +45,10 @@ class HotkeyManager(QObject):
         """处理按键按下事件"""
         if key == self._trigger_key:
             self.hotkey_pressed.emit()
+
+        # Esc键检测（固定功能）
+        if self._esc_enabled and key == Key.esc:
+            self.esc_pressed.emit()
 
     def __del__(self):
         """析构时自动清理"""
