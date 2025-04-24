@@ -1,13 +1,12 @@
-fastapi==0.115.12
+beautifulsoup4==4.13.4
+Flask==3.1.0
 keyboard==0.13.5
 openpyxl==3.1.5
+pandas==2.2.3
 pynput==1.8.1
-pyperclip==1.8.2
 PySide6==6.8.3
 PySide6==6.9.0
 PySide6_Addons==6.8.3
 PySide6_Essentials==6.8.3
 SQLAlchemy==2.0.40
-uvicorn==0.34.1
-waitress==3.0.2
-websockets==11.0.3
+Werkzeug==3.1.3
