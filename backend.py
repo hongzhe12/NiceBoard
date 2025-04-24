@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 
 import pandas as pd
-import pysnooper
 from bs4 import BeautifulSoup
 from flask import Flask, render_template
 from flask import redirect, url_for, flash
@@ -385,7 +384,6 @@ def settings_delete(id):
     return redirect(url_for('settings_list'))
 
 @app.route('/clipboard/cleanup')
-@pysnooper.snoop()
 def clipboard_cleanup():
     """删除所有没有标签的剪贴板记录"""
     try:

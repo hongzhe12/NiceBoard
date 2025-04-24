@@ -7,12 +7,14 @@ from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDeskto
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog
 
+
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
 from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, get_settings, auto_clean_history, update_tags_for_clipboard_item, find_tags_by_content
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
+from utils import LogDisplayWindow
 
 # 获取当前用户的应用数据目录
 log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
@@ -27,7 +29,8 @@ from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 logging.basicConfig(
     filename=log_file,
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    encoding='utf-8'
 )
 
 # 搜索工作线程类
@@ -123,6 +126,9 @@ class ClipboardHistoryApp(QMainWindow):
         self._thread_pool = QThreadPool()
         self._current_search_text = ""
 
+        # 日志窗口
+        self.log_window = None
+
 
     def setup_system_tray(self):
         """创建系统托盘图标"""
@@ -149,6 +155,10 @@ class ClipboardHistoryApp(QMainWindow):
         # 连接打开浏览器的信号槽
         backend_action.triggered.connect(self.open_website)
 
+        logs_action = tray_menu.addAction("查看日志")
+        # 连接打开浏览器的信号槽
+        logs_action.triggered.connect(self.open_log_file)
+
         tray_menu.addSeparator()
         quit_action = tray_menu.addAction("退出")
         quit_action.triggered.connect(self.quit_application)
@@ -157,6 +167,21 @@ class ClipboardHistoryApp(QMainWindow):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self.on_tray_activated)
         self.tray_icon.show()
+
+    def open_log_file(self):
+        """打开日志文件"""
+        try:
+            with open(log_file, 'r', encoding='utf-8') as file:
+                log_content = file.read()
+            # 创建并显示日志显示窗口
+            self.log_window = LogDisplayWindow(log_content)
+            self.log_window.show()
+
+        except Exception as e:
+            error_message = f"无法打开日志文件: {e}"
+            self.log_window = LogDisplayWindow(error_message)
+            self.log_window.show()
+
 
     def open_website(self):
         if self.backend_thread is None or not self.backend_thread.isRunning():

@@ -12,20 +12,7 @@ from ui_settings_window import Ui_SettingsForm
 from utils import load_db_config, save_db_config
 
 
-def show_message(title, message, is_error=False):
-    """显示消息对话框"""
-    from PySide6.QtWidgets import QMessageBox
 
-    msg_box = QMessageBox()
-    msg_box.setWindowTitle(title)
-    msg_box.setText(message)
-
-    if is_error:
-        msg_box.setIcon(QMessageBox.Critical)
-    else:
-        msg_box.setIcon(QMessageBox.Information)
-
-    msg_box.exec()
 
 
 class SettingsWindow(QWidget):

@@ -12,7 +12,7 @@ class HotkeyManager(QObject):
         self._listener = None
         self._trigger_key = None
 
-    def start_listen(self, hotkey: str = 'F9') -> None:
+    def start_listen(self, hotkey: str = 'f9') -> None:
         """启动热键监听"""
         self.stop_listen()  # 确保先停止现有监听
 
