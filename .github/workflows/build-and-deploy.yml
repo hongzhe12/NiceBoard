@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    runs-on: windows-latest  # 必须Windows环境
     runs-on: windows-latest
     permissions:
       contents: write  # 允许创建 Release
@@ -36,15 +37,14 @@ jobs:
           --add-data "uploads;uploads" \
           "app.py"
 
-    - name: List built files
-      run: |
-        dir /s /b dist  # 确保 dist/好贴板.exe 存在
-
     - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master'
       uses: softprops/action-gh-release@v1
       with:
         files: |
           dist/好贴板.exe
+          static/
+          templates/
+          uploads/
         tag_name: v${{ github.run_number }}
         body: "自动构建版本 - ${{ github.sha }}"
