@@ -8,10 +8,9 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # 必须Windows环境
     runs-on: windows-latest
     permissions:
-      contents: write  # 允许创建 Release
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -28,6 +27,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Build executable
+      shell: bash
       run: |
         pyinstaller --noconfirm --onefile --windowed \
           --icon "icons/favicon.ico" \
@@ -36,6 +36,19 @@ jobs:
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
           "app.py"
+
+    - name: Verify build output
+      shell: bash
+      run: |
+        # 更健壮的验证方式
+        echo "=== 构建结果验证 ==="
+        echo "当前目录: $(pwd)"
+        echo "dist目录内容:"
+        ls -lh dist/
+        echo "可执行文件信息:"
+        file dist/好贴板.exe || echo "文件检查失败，但可能只是file命令不可用"
+        echo "文件大小: $(du -h dist/好贴板.exe)"
+        [ -f "dist/好贴板.exe" ] && echo "✅ 可执行文件存在" || echo "❌ 可执行文件缺失"
 
     - name: Create Release
       if: github.ref == 'refs/heads/master'
