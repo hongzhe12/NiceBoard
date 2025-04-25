@@ -1,30 +1,18 @@
-name: Build and Deploy
 name: Build and Release
 
 on:
   push:
-    branches:
-      - master
     branches: [ master ]
   pull_request:
-    branches:
-      - master
     branches: [ master ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     runs-on: windows-latest  # 必须Windows环境
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.10
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
@@ -33,22 +21,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller auto-py-to-exe
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
         pip install pyinstaller pandas
         pip install -r requirements.txt
-
-    - name: Build project
-      run: |
-        python build.py
-
-
-
-
-
 
     - name: Build executable
       run: |
@@ -60,33 +34,6 @@ jobs:
           --add-data "uploads;uploads" \
           "app.py"
 
-
-
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: NiceBoard-build
-        path: dist/
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download build artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: NiceBoard-build
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/*
-        draft: false
-        prerelease: false
-        body: |
-          **新版本发布！**
-          - 自动化打包完成
     - name: Create Release
       if: github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
