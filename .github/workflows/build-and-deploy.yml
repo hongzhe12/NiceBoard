@@ -75,7 +75,7 @@ jobs:
         subject: "GitHub Actions 好贴板新版本构建通知 - ${{ github.repository }} (${{ job.status }})"
         body: |
           🚀 **项目名称**: ${{ github.repository }}
-          ⏰ **构建时间**: ${{ format('{0:YYYY-MM-DD HH:mm:ss}', github.event.timestamp) }}
+          ⏰ **构建时间**: ${{ format('{0:YYYY-MM-DD HH:mm:ss}', github.workflow_run.created_at) }}
           🌿 **触发分支**: ${{ github.ref }}
           🔢 **构建编号**: #${{ github.run_number }}
           ✅ **构建状态**: ${{ job.status }}
