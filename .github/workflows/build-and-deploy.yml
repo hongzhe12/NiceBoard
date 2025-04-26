@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  APP_VERSION: 1.0.0  # 在这里定义你的版本号
+  APP_VERSION: 1.0.0  # 定义版本号
 
 jobs:
   build:
@@ -32,9 +32,13 @@ jobs:
     - name: Build executable
       shell: bash
       run: |
+        # 先删除可能存在的旧构建
+        rm -rf build dist
+        
+        # 构建可执行文件
         pyinstaller --noconfirm --onefile --windowed \
           --icon "icons/favicon.ico" \
-          --name "NiceBoard-${{ env.APP_VERSION }}" \  # 添加版本号到文件名
+          --name "NiceBoard_${{ env.APP_VERSION }}" \  # 移除了多余括号
           --add-data "static;static" \
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
@@ -48,18 +52,15 @@ jobs:
         echo "dist directory contents:"
         ls -lh dist/
         echo "Executable info:"
-        file "dist/NiceBoard-${{ env.APP_VERSION }}.exe" || echo "File check failed (may just be missing 'file' command)"
-        echo "File size: $(du -h "dist/NiceBoard-${{ env.APP_VERSION }}.exe")"
-        [ -f "dist/NiceBoard-${{ env.APP_VERSION }}.exe" ] && echo "✅ Executable exists" || echo "❌ Executable missing"
+        file "dist/NiceBoard_${{ env.APP_VERSION }}.exe" || echo "File check failed (may just be missing 'file' command)"
+        echo "File size: $(du -h "dist/NiceBoard_${{ env.APP_VERSION }}.exe")"
+        [ -f "dist/NiceBoard_${{ env.APP_VERSION }}.exe" ] && echo "✅ Executable exists" || echo "❌ Executable missing"
 
     - name: Create Release
       if: github.ref == 'refs/heads/master'
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          dist/NiceBoard-${{ env.APP_VERSION }}.exe
-          static/
-          templates/
-          uploads/
-        tag_name: v${{ env.APP_VERSION }}  # 使用相同的版本号作为标签
-        body: "Version ${{ env.APP_VERSION }} - ${{ github.sha }}"
+          dist/NiceBoard_${{ env.APP_VERSION }}.exe
+        tag_name: v${{ env.APP_VERSION }}
+        body: "Version ${{ env.APP_VERSION }} - Build ${{ github.run_number }} (${{ github.sha }})"
