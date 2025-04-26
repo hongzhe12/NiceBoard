@@ -595,3 +595,4 @@ if __name__ == "__main__":
 
     window = ClipboardHistoryApp()
     sys.exit(app.exec())
+    # RCWM9SMSmzGyTDpj

@@ -60,3 +60,27 @@ jobs:
           uploads/
         tag_name: v${{ github.run_number }}
         body: "自动构建版本 - ${{ github.sha }}"
+
+    - name: Send email notification (163/QQ)
+      if: always()  # 无论构建成功或失败都发送
+      uses: dawidd6/action-send-mail@v3
+      with:
+        # 163 邮箱配置（QQ邮箱替换为 smtp.qq.com）
+        server_address: smtp.163.com
+        server_port: 465  # 163/QQ 都支持 465 (SSL)
+        username: ${{ secrets.SMTP_USER }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+
+        # 邮件内容
+        subject: "GitHub Actions 好贴板新版本构建通知 - ${{ github.repository }} (${{ job.status }})"
+        body: |
+          🚀 **项目名称**: ${{ github.repository }}
+          ⏰ **构建时间**: ${{ format('{0:YYYY-MM-DD HH:mm:ss}', github.event.timestamp) }}
+          🌿 **触发分支**: ${{ github.ref }}
+          🔢 **构建编号**: #${{ github.run_number }}
+          ✅ **构建状态**: ${{ job.status }}
+          📊 **详情链接**: [${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          💡 此邮件由 GitHub Actions 自动发送，请勿直接回复。
+        to: ${{ secrets.RECIPIENT_EMAIL }}  # 接收邮件的地址
+        from: GitHub Actions Bot <${{ secrets.SMTP_USER }}>  # 发件人显示名称
