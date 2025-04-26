@@ -31,16 +31,15 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed \
           --icon "icons/favicon.ico" \
-          --name "NiceBoard" \  # 仅此处改为英文名称
+          --name "NiceBoard" \
           --add-data "static;static" \
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
-          "app.py"
+          app.py
 
     - name: Verify build output
       shell: bash
       run: |
-        # 更健壮的验证方式
         echo "=== 构建结果验证 ==="
         echo "当前目录: $(pwd)"
         echo "dist目录内容:"
@@ -55,7 +54,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          dist/NiceBoard.exe  # 同步改为英文名称
+          dist/NiceBoard.exe
           static/
           templates/
           uploads/
