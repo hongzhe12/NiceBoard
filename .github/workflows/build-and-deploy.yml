@@ -7,10 +7,12 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-and-release:
     runs-on: windows-latest
     permissions:
       contents: write
+    outputs:
+      release_url: ${{ steps.create-release.outputs.upload_url }}
 
     steps:
     - uses: actions/checkout@v4
@@ -50,6 +52,7 @@ jobs:
         [ -f "dist/NiceBoard.exe" ] && echo "✅ 可执行文件存在" || echo "❌ 可执行文件缺失"
 
     - name: Create Release
+      id: create-release
       if: github.ref == 'refs/heads/master'
       uses: softprops/action-gh-release@v1
       with:
@@ -59,35 +62,41 @@ jobs:
           templates/
           uploads/
         tag_name: v${{ github.run_number }}
-        body: "自动构建版本 - ${{ github.sha }}"
+        body: |
+          自动构建版本 - ${{ github.sha }}
+          下载地址: https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe
 
-    # 新增时间生成步骤（关键修正点）
     - name: Generate timestamp
       id: get_time
       shell: bash
       run: |
         echo "formatted_time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
-    - name: Send email notification (163/QQ)
-      needs: [Create Release]  # 确保 Release 完成后再发邮件
-      if: always()
+  notify:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Send email notification
       uses: dawidd6/action-send-mail@v3
       with:
-        # 163 邮箱配置
         server_address: smtp.163.com
         server_port: 465
         username: ${{ secrets.SMTP_USER }}
         password: ${{ secrets.SMTP_PASSWORD }}
-
-        # 邮件内容
-        subject: "GitHub Actions 好贴板新版本构建通知 - ${{ github.repository }} (${{ job.status }})"
+        subject: "GitHub Actions 构建通知 - ${{ github.repository }} (${{ needs.build-and-release.result }})"
         body: |
           🚀 **项目名称**: ${{ github.repository }}
-          ⏰ **构建时间**: ${{ steps.get_time.outputs.formatted_time }}
+          ⏰ **构建时间**: ${{ needs.build-and-release.outputs.formatted_time }}
           🌿 **触发分支**: ${{ github.ref }}
           🔢 **构建编号**: #${{ github.run_number }}
-          ✅ **构建状态**: ${{ job.status }}
-          📥 **直接下载**: [NiceBoard.exe](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe)
+          ✅ **构建状态**: ${{ needs.build-and-release.result }}
+          
+          📥 **直接下载**:
+          [NiceBoard.exe](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe)
+          
+          📊 **构建详情**:
+          [${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           
           💡 此邮件由 GitHub Actions 自动发送，请勿直接回复。
         to: ${{ secrets.RECIPIENT_EMAIL }}
