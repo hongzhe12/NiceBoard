@@ -69,6 +69,7 @@ jobs:
         echo "formatted_time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
     - name: Send email notification (163/QQ)
+      needs: [Create Release]  # 确保 Release 完成后再发邮件
       if: always()
       uses: dawidd6/action-send-mail@v3
       with:
@@ -86,7 +87,7 @@ jobs:
           🌿 **触发分支**: ${{ github.ref }}
           🔢 **构建编号**: #${{ github.run_number }}
           ✅ **构建状态**: ${{ job.status }}
-          📊 **详情链接**: [${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          📥 **直接下载**: [NiceBoard.exe](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe)
           
           💡 此邮件由 GitHub Actions 自动发送，请勿直接回复。
         to: ${{ secrets.RECIPIENT_EMAIL }}
