@@ -86,17 +86,17 @@ jobs:
         password: ${{ secrets.SMTP_PASSWORD }}
         subject: "GitHub Actions 构建通知 - ${{ github.repository }} (${{ needs.build-and-release.result }})"
         body: |
-          🚀 **项目名称**: ${{ github.repository }}
-          ⏰ **构建时间**: ${{ needs.build-and-release.outputs.formatted_time }}
-          🌿 **触发分支**: ${{ github.ref }}
-          🔢 **构建编号**: #${{ github.run_number }}
-          ✅ **构建状态**: ${{ needs.build-and-release.result }}
+          🚀 项目名称: ${{ github.repository }}
+          ⏰ 构建时间: ${{ needs.build-and-release.outputs.formatted_time }}
+          🌿 触发分支: ${{ github.ref }}
+          🔢 构建编号: #${{ github.run_number }}
+          ✅ 构建状态: ${{ needs.build-and-release.result }}
           
-          📥 **直接下载**:
+          📥 直接下载:
           [NiceBoard.exe](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe)
           
-          📊 **构建详情**:
-          [${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          📊 构建详情:
+          (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           
           💡 此邮件由 GitHub Actions 自动发送，请勿直接回复。
         to: ${{ secrets.RECIPIENT_EMAIL }}
