@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ master ]
 
-env:
-  APP_VERSION: 1.0.0  # 定义版本号
-
 jobs:
   build:
     runs-on: windows-latest
@@ -32,13 +29,9 @@ jobs:
     - name: Build executable
       shell: bash
       run: |
-        # 先删除可能存在的旧构建
-        rm -rf build dist
-        
-        # 构建可执行文件
         pyinstaller --noconfirm --onefile --windowed \
           --icon "icons/favicon.ico" \
-          --name "NiceBoard_${{ env.APP_VERSION }}" \  # 移除了多余括号
+          --name "NiceBoard" \  # 仅此处改为英文名称
           --add-data "static;static" \
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
@@ -47,20 +40,24 @@ jobs:
     - name: Verify build output
       shell: bash
       run: |
-        echo "=== Build Verification ==="
-        echo "Current directory: $(pwd)"
-        echo "dist directory contents:"
+        # 更健壮的验证方式
+        echo "=== 构建结果验证 ==="
+        echo "当前目录: $(pwd)"
+        echo "dist目录内容:"
         ls -lh dist/
-        echo "Executable info:"
-        file "dist/NiceBoard_${{ env.APP_VERSION }}.exe" || echo "File check failed (may just be missing 'file' command)"
-        echo "File size: $(du -h "dist/NiceBoard_${{ env.APP_VERSION }}.exe")"
-        [ -f "dist/NiceBoard_${{ env.APP_VERSION }}.exe" ] && echo "✅ Executable exists" || echo "❌ Executable missing"
+        echo "可执行文件信息:"
+        file dist/NiceBoard.exe || echo "文件检查失败，但可能只是file命令不可用"
+        echo "文件大小: $(du -h dist/NiceBoard.exe)"
+        [ -f "dist/NiceBoard.exe" ] && echo "✅ 可执行文件存在" || echo "❌ 可执行文件缺失"
 
     - name: Create Release
       if: github.ref == 'refs/heads/master'
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          dist/NiceBoard_${{ env.APP_VERSION }}.exe
-        tag_name: v${{ env.APP_VERSION }}
-        body: "Version ${{ env.APP_VERSION }} - Build ${{ github.run_number }} (${{ github.sha }})"
+          dist/NiceBoard.exe  # 同步改为英文名称
+          static/
+          templates/
+          uploads/
+        tag_name: v${{ github.run_number }}
+        body: "自动构建版本 - ${{ github.sha }}"
