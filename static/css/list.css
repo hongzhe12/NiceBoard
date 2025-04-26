@@ -98,3 +98,18 @@ table .text-end {
     background-color: #e9ecef;
     cursor: not-allowed;
 }
+
+/* 增加复选框的大小 */
+.custom-checkbox .form-check-input {
+    width: 24px; /* 设置你希望的宽度 */
+    height: 24px; /* 设置你希望的高度 */
+}
+
+.custom-checkbox .form-check-input:checked {
+    background-color: #007bff; /* 调整选中状态的背景颜色 */
+    border-color: #007bff; /* 调整选中状态的边框颜色 */
+}
+
+.custom-checkbox .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25); /* 调整焦点状态的阴影 */
+}

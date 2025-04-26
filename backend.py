@@ -405,5 +405,31 @@ def clipboard_cleanup():
     return redirect(url_for('clipboard_list'))
 
 
+@app.route('/clipboard/export_selected', methods=['POST'])
+def export_selected():
+    selected_ids = request.form.getlist('selected_items')
+    print("Received selected items:", selected_ids)  # 打印接收到的参数
+    session = Session()
+    items = session.query(ClipboardItem).filter(ClipboardItem.id.in_(selected_ids)).all()
+
+    df = pd.DataFrame([{
+        'ID': item.id,
+        '内容': item.content,
+        '标签': item.tags,
+        '时间戳': item.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    } for item in items])
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='剪贴板')
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name='剪贴板选中导出.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
 if __name__ == '__main__':
     app.run(debug=True)

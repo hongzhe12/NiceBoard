@@ -577,8 +577,6 @@ class ClipboardHistoryApp(QMainWindow):
 #     backend_app.run(port=5000, debug=False)
 
 if __name__ == "__main__":
-    # pyinstaller --noconfirm --onefile --windowed --icon "icons/favicon.ico" --name "好贴板" --add-data "static;static/" --add-data "templates;templates/" --add-data "uploads;uploads/" "app.py"
-
     app = QApplication(sys.argv)
 
     # 全局样式
