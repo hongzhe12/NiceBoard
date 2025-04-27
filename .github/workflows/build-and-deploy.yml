@@ -84,7 +84,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.SMTP_USER }}
         password: ${{ secrets.SMTP_PASSWORD }}
-        subject: "老瑜好贴板更新了，后台界面新增了选择导出功能！"
+        subject: "修复了缺少数据库依赖问题"
         body: |
           🚀 项目名称: ${{ github.repository }}
           ⏰ 构建时间: ${{ needs.build-and-release.outputs.formatted_time }}
