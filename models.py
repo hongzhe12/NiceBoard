@@ -31,16 +31,10 @@ def get_db_path():
     获取数据库文件的路径，如果应用数据目录不存在则创建它。
     :return: 数据库文件的完整路径字符串
     """
-    appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
+    appdata_dir = Path(os.getenv('APPDATA')) / 'haotieban'
     appdata_dir.mkdir(exist_ok=True)
     return str(appdata_dir / 'clipboard_history.db')
 
-# # 获取数据库文件路径
-# file_path = get_db_path()
-# # 初始化数据库
-# Base = declarative_base()
-# engine = create_engine(f'sqlite:///{file_path}', echo=False)
-# Session = sessionmaker(bind=engine)
 
 
 # 在ClipboardItem类中添加tags字段，并为content字段添加索引
@@ -135,17 +129,16 @@ def auto_clean_history():
     """
     session = Session()
     try:
-        settings = session.query(AppSettings).first()
-        if not settings:
-            return
+        settings = load_db_config()
+        max_history = settings.get('max_history', 100000)
 
         # 查询当前记录总数
         total = session.query(ClipboardItem).count()
-        if total <= settings.max_history:
+        if total <= max_history:
             return
 
         # 计算需要删除的数量
-        excess = total - settings.max_history
+        excess = total - max_history
 
         # 找出最旧的 `excess` 条记录并删除
         oldest_items = session.query(ClipboardItem) \

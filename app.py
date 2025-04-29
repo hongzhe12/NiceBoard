@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from PySide6.QtCore import Qt, QTimer, QEvent, QUrl
+from PySide6.QtCore import Qt,  QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog
@@ -11,10 +11,12 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu,
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
 from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
-    filter_clipboard_history, get_settings, auto_clean_history, update_tags_for_clipboard_item, find_tags_by_content
+    filter_clipboard_history,  update_tags_for_clipboard_item, find_tags_by_content
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 from utils import LogDisplayWindow
+from models import   auto_clean_history
+from settings_config import config_instance  # 添加这行导入
 
 # 获取当前用户的应用数据目录
 log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
@@ -80,11 +82,10 @@ class ClipboardHistoryApp(QMainWindow):
         self.clipboard = QApplication.clipboard()
         self.clipboard.dataChanged.connect(self._on_clipboard_change)
 
-        # 获取当前设置
-        settings = get_settings()
-        # 访问具体设置项
-        hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
-        self.__hotkey = settings.hotkey  # 获取热键组合（默认 'Alt+X'）
+
+        # 使用配置实例获取设置
+        hotkey = config_instance.get('hotkey', 'f9')
+        self.__hotkey = hotkey
 
         # 转换小写
         hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
@@ -455,6 +456,10 @@ class ClipboardHistoryApp(QMainWindow):
 
     def _load_history(self, limit=50):
         """从数据库加载历史记录"""
+        if limit is None:
+            # 从配置中获取最大历史记录数
+            limit = config_instance.get('max_history', 50)
+        
         self.ui.history_list.clear()
         items = get_clipboard_history(limit)
         self._update_search_results(items)  # 重用相同的更新逻辑

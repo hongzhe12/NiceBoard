@@ -1,18 +1,14 @@
 import keyboard
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIntValidator
-from PySide6.QtWidgets import (
-    QWidget, QMessageBox, QDialog
-)
+from PySide6.QtWidgets import QWidget, QMessageBox, QDialog
+import keyboard
 
 from auto_start import enable_auto_start, disable_auto_start
 from input_form_dialog import InputFormDialog
-from models import get_settings, update_settings, get_db_path
+from models import get_db_path
+from settings_config import config_instance
 from ui_settings_window import Ui_SettingsForm
-from utils import load_db_config, save_db_config
-
-
-
 
 
 class SettingsWindow(QWidget):
@@ -29,105 +25,88 @@ class SettingsWindow(QWidget):
         self.ui.hotkey_edit.clicked.connect(self.change_hotkey)
         self.ui.history_limit.textChanged.connect(self._on_history_changed)
 
-        settings = get_settings()
-        self.ui.hotkey_edit.setText(settings.hotkey)
-        self.ui.history_limit.setText(str(settings.max_history))
-        self.ui.auto_start.setChecked(settings.auto_start)
+        # 从配置实例加载设置
+        self.ui.hotkey_edit.setText(config_instance.get('hotkey', 'f9'))
+        self.ui.history_limit.setText(str(config_instance.get('max_history', 10000)))
+        self.ui.auto_start.setChecked(config_instance.get('auto_start', True))
 
-        # 数据库配置按钮连接槽函数
         self.ui.database_btn.clicked.connect(self.database_btn_clicked)
+
         # 初始化数据库启用状态
-        current_config = load_db_config()
-        if current_config.get('enable'):
-            self.ui.enable_db_box.setChecked(True)
-        else:
-            self.ui.enable_db_box.setChecked(False)
+        self.ui.enable_db_box.setChecked(config_instance.get('enable', False))
 
     def database_btn_clicked(self):
-        # 先尝试加载现有配置作为默认值
-        current_config = load_db_config()
-
-        # 获取本地数据库文件路径
         file_path = get_db_path()
-        # 自定义数据结构，用于描述表单字段，使用加载的配置作为默认值
         form_structure = [
             {"label": "数据库名称", "type": "text",
-             "default": current_config.get('db_name', file_path)},
+             "default": config_instance.get('db_name', file_path)},
             {"label": "主机地址", "type": "text",
-             "default": current_config.get('host', 'localhost')},
+             "default": config_instance.get('host', 'localhost')},
             {"label": "端口号", "type": "text",
-             "default": current_config.get('port', '5432')},
+             "default": config_instance.get('port', '5432')},
             {"label": "用户名", "type": "text",
-             "default": current_config.get('username', 'root')},
+             "default": config_instance.get('username', 'root')},
             {"label": "密码", "type": "text",
-             "default": current_config.get('password', '')},
+             "default": config_instance.get('password', '')},
         ]
 
         dialog = InputFormDialog(form_structure, self)
         if dialog.exec() == QDialog.Accepted:
             values = dialog.get_input_values()
+            
+            # 更新配置
+            config_instance.set('db_name', values[0])
+            config_instance.set('host', values[1])
+            config_instance.set('port', values[2])
+            config_instance.set('username', values[3])
+            config_instance.set('password', values[4])
+            
+            # 保存配置
+            if config_instance.save_config():
+                QMessageBox.information(self, "成功", "数据库配置已成功更新")
+            else:
+                QMessageBox.warning(self, "错误", "保存配置失败")
 
-            # 解析返回的值
-            db_config = {
-                'db_name': values[0],
-                'host': values[1],
-                'port': values[2],
-                'username': values[3],
-                'password': values[4]
-            }
+    def save_settings(self):
+        try:
+            # 保存数据库启用状态
+            config_instance.set('enable', self.ui.enable_db_box.isChecked())
 
-            # 存储配置到配置文件
-            save_db_config(db_config)
+            # 保存最大记录数
+            max_history = int(self.ui.history_limit.text())
+            if not 1 <= max_history <= 100000:
+                QMessageBox.warning(self, "错误", "请输入1-100000之间的整数")
+                return
+            config_instance.set('max_history', max_history)
 
-            # 显示成功消息
-            show_message("数据库配置已保存", "数据库配置已成功更新。")
+            # 保存热键设置
+            hotkey = self.ui.hotkey_edit.text().lower()
+            config_instance.set('hotkey', hotkey)
 
-    # def __init__(self, parent=None):
-    #     super().__init__(parent)
-    #     # 在SettingsWindow的__init__中添加：
-    #     print("设置窗口初始化完成！")
-    #     # 如果看不到这个输出，说明构造失败
-    #     self.setWindowTitle("剪贴板历史设置")
-    #     self.setFixedSize(300, 250)
-    #
-    #     # 主布局
-    #     layout = QVBoxLayout()
-    #     form_layout = QFormLayout()
-    #
-    #     # 热键设置
-    #     self.hotkey_edit = QPushButton("f9")
-    #     self.hotkey_edit.clicked.connect(self.change_hotkey)
-    #     form_layout.addRow("快捷热键:", self.hotkey_edit)
-    #
-    #     # 历史记录限制
-    #     # 替换 QSpinBox 为 QLineEdit
-    #     self.history_limit = QLineEdit()
-    #     self.history_limit.setPlaceholderText("输入10-500的整数")  # 提示文本
-    #     self.history_limit.setValidator(QIntValidator(1, 100000))  # 限制输入范围
-    #     form_layout.addRow("最大记录数:", self.history_limit)
-    #
-    #     # 自动启动
-    #     self.auto_start = QCheckBox("开机自动启动")
-    #     form_layout.addRow(self.auto_start)
-    #
-    #     # 保存按钮
-    #     save_btn = QPushButton("保存设置")
-    #     save_btn.clicked.connect(self.save_settings)
-    #
-    #     layout.addLayout(form_layout)
-    #     layout.addWidget(save_btn)
-    #     self.setLayout(layout)
-    #
-    #     # 加载当前设置到界面
-    #     settings = get_settings()
-    #     # 访问具体设置项
-    #     self.hotkey_edit.setText(settings.hotkey)
-    #     self.history_limit.setText(str(settings.max_history))
-    #     self.auto_start.setChecked(settings.auto_start)
-    #
-    #     self.history_limit.textChanged.connect(self._on_history_changed)  # 使用 textChanged 而不是 valueChanged
+            # 保存开机自启设置
+            auto_start = self.ui.auto_start.isChecked()
+            config_instance.set('auto_start', auto_start)
 
-    # ...其余代码...
+            # 保存所有配置
+            if config_instance.save_config():
+                # 处理开机自启的实际设置
+                if auto_start:
+                    enable_auto_start()
+                else:
+                    disable_auto_start()
+
+                # 检查热键是否修改
+                if hotkey.lower() not in ('f9', 'f9'):
+                    QMessageBox.information(self, "提示", "热键修改后，需要重启好贴板！")
+                else:
+                    QMessageBox.information(self, "成功", "设置已保存！")
+
+                self.hide()
+            else:
+                QMessageBox.warning(self, "错误", "保存配置失败")
+                
+        except ValueError:
+            QMessageBox.warning(self, "错误", "请输入有效数字")
 
     def _on_history_changed(self, text):
         """处理文本变化"""
@@ -205,46 +184,6 @@ class SettingsWindow(QWidget):
         """热键触发时的回调"""
         print("热键被触发！")
         # 在这里执行你的功能，例如显示/隐藏窗口
-
-    def save_settings(self):
-        """保存设置"""
-        try:
-            # 保存数据库启用状态
-            current_config = load_db_config()
-            if self.ui.enable_db_box.isChecked():
-                current_config['enable'] = True
-            else:
-                current_config['enable'] = False
-            # 保存数据库启用状态
-            save_db_config(current_config)
-
-            # 校验最大记录数
-            max_history = int(self.ui.history_limit.text())  # 获取输入值
-            if not 1 <= max_history <= 100000:
-                QMessageBox.warning(self, "错误", "请输入1-100000之间的整数")
-                return
-
-            # 检查开关机配置
-            if self.ui.auto_start.isChecked():
-                enable_auto_start()
-            else:
-                disable_auto_start()
-            # 更新设置
-            update_settings(
-                max_history=max_history,
-                hotkey=self.ui.hotkey_edit.text(),
-                auto_start=self.ui.auto_start.isChecked()
-            )
-            # 是否更新了热键
-            if self.ui.hotkey_edit.text() != 'Alt+X' and self.ui.hotkey_edit.text() != 'alt+x':
-
-                QMessageBox.information(self, "提示", "热键修改后，需要重启好贴板！")
-            else:
-                QMessageBox.warning(self, "成功", "设置已保存！")
-
-            self.hide()
-        except ValueError:
-            QMessageBox.warning(self, "错误", "请输入有效数字")
 
     def closeEvent(self, event):
         """重写关闭事件（点击X时最小化到托盘）"""

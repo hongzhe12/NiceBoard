@@ -2,6 +2,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QApplication, QPushButton, QVBoxLayout, QWidget, \
     QTextEdit
+import json
+from pathlib import Path
 
 def show_message(title, message, is_error=False):
     """显示消息对话框"""
@@ -61,12 +63,9 @@ class LogDisplayWindow(QWidget):
 
 def load_db_config():
     """从配置文件加载数据库配置"""
-    import json
-    from pathlib import Path
-
     # 默认配置（当没有配置文件时使用）
     default_config = {
-        'db_name': 'clipboard.db',
+        'db_name': '',
         'host': '',
         'port': '',
         'username': '',
