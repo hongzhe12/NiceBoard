@@ -3,19 +3,22 @@ import os
 from datetime import datetime
 
 import pandas as pd
+import qrcode
 from bs4 import BeautifulSoup
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask import redirect, url_for, flash
 from flask import request  # 确保导入了 request
 from flask import send_file
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
-
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
 from models import ClipboardItem, AppSettings, engine
-
+import base64
 # 初始化Flask应用
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # 设置一个密钥用于flash消息
+socketio = SocketIO(app)
 
 # 创建数据库会话
 Session = sessionmaker(bind=engine)
@@ -25,15 +28,58 @@ session = Session()
 # ------------------------------
 # ClipboardItem 功能
 # ------------------------------
+# 配置文件上传的路径
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 
 @app.route('/')
 def index():
     return redirect(url_for('clipboard_list'))
 
 
-# 配置文件上传的路径
-UPLOAD_FOLDER = 'uploads/'
-ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/clipboard/listen')
+def clipboard_listen():
+    # 二维码内容为监听地址（PC端访问）
+    qr_url = request.host_url.rstrip('/') + '/clipboard/send'
+    qr_img = qrcode.make(qr_url)
+    buffer = io.BytesIO()
+    qr_img.save(buffer, format="PNG")
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    qr_data_uri = f"data:image/png;base64,{qr_base64}"
+
+    return render_template('clipboard_listen.html',qr_data_uri=qr_data_uri)
+
+
+def is_mobile():
+    user_agent = request.user_agent.string.lower()
+    mobile_keywords = ['iphone', 'android', 'webos', 'blackberry',
+                      'windows phone', 'mobile', 'ipod', 'ipad']
+    return any(keyword in user_agent for keyword in mobile_keywords)
+
+@app.route('/clipboard/send', methods=['GET', 'POST'])
+def clipboard_send():
+    if request.method == 'POST':
+        text = request.form.get('text_content', '').strip()
+        uploaded_file = request.files.get('file')
+
+        if text:
+            socketio.emit('new_content', {'text': text})
+        elif uploaded_file and uploaded_file.filename:
+            filename = secure_filename(uploaded_file.filename)
+            path = os.path.join(UPLOAD_FOLDER, filename)
+            uploaded_file.save(path)
+            socketio.emit('new_content', {
+                'filename': filename,
+                'file_url': f'/uploads/{filename}'
+            })
+        return '已发送'
+
+
+    return render_template('clipboard_send.html')
 
 
 # 检查文件扩展名是否允许
@@ -431,5 +477,10 @@ def export_selected():
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000)
+
+
+    # app.run(debug=True)
