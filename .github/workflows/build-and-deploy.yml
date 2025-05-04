@@ -66,12 +66,6 @@ jobs:
           自动构建版本 - ${{ github.sha }}
           下载地址: https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe
 
-    - name: Generate timestamp
-      id: get_time
-      shell: bash
-      run: |
-        echo "formatted_time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
-
   notify:
     needs: build-and-release
     runs-on: ubuntu-latest
@@ -84,19 +78,21 @@ jobs:
         server_port: 465
         username: ${{ secrets.SMTP_USER }}
         password: ${{ secrets.SMTP_PASSWORD }}
-        subject: "好贴板更新：后台新增多选，优化设置配置管理"
+        subject: "好贴板更新通知"
         body: |
           🚀 项目名称: ${{ github.repository }}
-          ⏰ 构建时间: ${{ needs.build-and-release.outputs.formatted_time }}
           🌿 触发分支: ${{ github.ref }}
           🔢 构建编号: #${{ github.run_number }}
           ✅ 构建状态: ${{ needs.build-and-release.result }}
           
-          📥 直接下载:
+          📥 直接下载（GitHub下载）:
           [NiceBoard.exe](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe)
           
-          📊 构建详情:
-          (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          📥 国内用户（坚果云极速下载-推荐）:
+          [好贴板.exe](https://www.jianguoyun.com/p/DSLPOuoQi5y1DRiunPYFIAA)
+          
+          📊 更新日志:
+          [更新日志](https://www.yuque.com/u26095674/kpaoff/pnzeyhacil52tkrr?singleDoc)
           
           💡 此邮件由 GitHub Actions 自动发送，请勿直接回复。
         to: ${{ secrets.RECIPIENT_EMAIL }}

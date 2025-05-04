@@ -1,6 +1,8 @@
 import logging
 import os
+import socket
 import sys
+import threading
 
 from PySide6.QtCore import Qt,  QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
@@ -25,7 +27,8 @@ log_file = os.path.join(log_dir, 'app.log')
 import resources_rc
 from PySide6.QtCore import QThread, Signal
 
-from backend import app as backend_app
+from backend import socketio
+from backend import app as flask_app
 from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 # 配置日志记录
 logging.basicConfig(
@@ -60,7 +63,7 @@ class BackendThread(QThread):
     def run(self):
         # 后台任务
         # run_backend()
-        backend_app.run(port=5000, debug=False)
+        socketio.run(flask_app, host='0.0.0.0', port=5000,allow_unsafe_werkzeug=True)
         # 发出信号，表示后台任务已启动
         self.started_signal.emit()
 
@@ -184,15 +187,18 @@ class ClipboardHistoryApp(QMainWindow):
             self.log_window = LogDisplayWindow(error_message)
             self.log_window.show()
 
-
     def open_website(self):
         if self.backend_thread is None or not self.backend_thread.isRunning():
             # 创建并启动后台线程
             self.backend_thread = BackendThread()
             self.backend_thread.start()
 
+        # 获取本机的IPv4地址
+        hostname = socket.gethostname()
+        ipv4_address = socket.gethostbyname(hostname)
+
         # 指定要打开的网站 URL
-        url = QUrl('http://127.0.0.1:5000')
+        url = QUrl(f'http://{ipv4_address}:5000')
         # 使用 QDesktopServices 打开浏览器
         QDesktopServices.openUrl(url)
 
@@ -577,11 +583,11 @@ class ClipboardHistoryApp(QMainWindow):
             super().closeEvent(event)
 
 
-# 使用多线程来运行 Flask 后端
-# def run_backend():
-#     backend_app.run(port=5000, debug=False)
+
 
 if __name__ == "__main__":
+
+
     app = QApplication(sys.argv)
 
     # 全局样式
@@ -598,4 +604,4 @@ if __name__ == "__main__":
 
     window = ClipboardHistoryApp()
     sys.exit(app.exec())
-    # RCWM9SMSmzGyTDpj
+

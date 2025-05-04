@@ -15,10 +15,16 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from models import ClipboardItem, AppSettings, engine
 import base64
+
+import os
+os.environ['FLASK_SOCKETIO_ASYNC_MODE'] = 'threading'  # 强制锁定异步模式
+os.environ['EVENTLET_MONKEY_PATCH'] = 'false'         # 禁用 eventlet 猴子补丁
+
 # 初始化Flask应用
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # 设置一个密钥用于flash消息
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='threading')  # 使用 threading 模式
+# socketio = SocketIO(app)  # 使用 threading 模式
 
 # 创建数据库会话
 Session = sessionmaker(bind=engine)

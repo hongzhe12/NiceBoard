@@ -68,6 +68,18 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/hongz/PycharmProjects/NiceBoard/uploads;uploads/"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "engineio.async_drivers.threading"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "flask_socketio"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "socketio"
   }
  ],
  "nonPyinstallerOptions": {
