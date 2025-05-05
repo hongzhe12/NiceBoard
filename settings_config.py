@@ -1,3 +1,4 @@
+import base64
 import json
 from pathlib import Path
 from typing import Any, Dict, Optional, TypedDict
@@ -102,6 +103,23 @@ class MyConfig:
         """重新加载配置文件"""
         self._config = self._load_config()
 
+    def import_config(self,base64_str) -> bool:
+        """导入配置"""
+        # 解码Base64字符串
+        base64_str = base64.b64decode(base64_str).decode('utf-8')
+
+        self._config = json.loads(base64_str)
+        self.save_config()
+
+        return True
+
+    def export_config(self) -> None:
+        """导出配置"""
+        # 将配置转换为Base64字符串
+        base64_str = base64.b64encode(json.dumps(self._config).encode('utf-8')).decode('utf-8')
+        return base64_str
+
 
 # 全局配置实例
 config_instance = MyConfig()
+

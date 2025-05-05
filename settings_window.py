@@ -1,11 +1,12 @@
 import keyboard
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QIntValidator
-from PySide6.QtWidgets import QWidget, QMessageBox, QDialog
+from PySide6.QtGui import QIntValidator, Qt
+from PySide6.QtWidgets import QWidget, QMessageBox, QDialog, QVBoxLayout, QTextEdit, QPushButton, QApplication
 import keyboard
 
 from auto_start import enable_auto_start, disable_auto_start
 from input_form_dialog import InputFormDialog
+from long_text_viewer import LongTextViewer
 from models import get_db_path
 from settings_config import config_instance
 from ui_settings_window import Ui_SettingsForm
@@ -19,6 +20,8 @@ class SettingsWindow(QWidget):
 
         self.setFixedSize(300, 250)
         self.setWindowTitle("剪贴板历史设置")
+
+        self.viewer = None
 
         self.ui.history_limit.setValidator(QIntValidator(1, 100000))
         self.ui.save_btn.clicked.connect(self.save_settings)
@@ -34,6 +37,34 @@ class SettingsWindow(QWidget):
 
         # 初始化数据库启用状态
         self.ui.enable_db_box.setChecked(config_instance.get('enable', False))
+        # 导入按钮
+        self.ui.import_btn.clicked.connect(self.import_btn_clicked)
+        # 导出按钮
+        self.ui.export_btn.clicked.connect(self.export_btn_clicked)
+
+    def import_btn_clicked(self):
+        form_structure = [
+            {"label": "导入配置", "type": "text", "default": ""},
+        ]
+
+        dialog = InputFormDialog(form_structure, self)
+        if dialog.exec() == QDialog.Accepted:
+            values = dialog.get_input_values()
+            data = values[0]
+            res = config_instance.import_config(data)
+            if res:
+                QMessageBox.information(self, "导入成功", "配置已导入")
+                return
+
+        return QMessageBox.information(self, "导入提示", "失败！")
+
+
+    def export_btn_clicked(self):
+        data = config_instance.export_config()
+        # 复制到剪贴板
+        QApplication.clipboard().setText(data)
+        QMessageBox.information(self, "导出成功", "配置已复制到剪贴板")
+
 
     def database_btn_clicked(self):
         file_path = get_db_path()

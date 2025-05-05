@@ -50,7 +50,7 @@ class ClipboardItem(Base):
     """剪贴板历史记录模型"""
     __tablename__ = 'clipboard_history'
     id = Column(Integer, primary_key=True)
-    content = Column(String(5000))
+    content = Column(String(50000))
     timestamp = Column(DateTime, default=datetime.now)
     tags = Column(String(200), default="")
 
