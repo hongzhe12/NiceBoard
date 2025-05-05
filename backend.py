@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
-from models import ClipboardItem, AppSettings, engine
+from models import ClipboardItem, AppSettings, engine, session_scope
 import base64
 
 import os
@@ -23,7 +23,7 @@ os.environ['EVENTLET_MONKEY_PATCH'] = 'false'         # 禁用 eventlet 猴子�
 # 初始化Flask应用
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # 设置一个密钥用于flash消息
-socketio = SocketIO(app, async_mode='threading')  # 使用 threading 模式
+socketio = SocketIO(app, async_mode='threading',engineio_logger=True)  # 使用 threading 模式
 # socketio = SocketIO(app)  # 使用 threading 模式
 
 # 创建数据库会话
@@ -37,6 +37,8 @@ session = Session()
 # 配置文件上传的路径
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
+
+
 
 @app.route('/')
 def index():
@@ -217,36 +219,37 @@ def clipboard_export():
 @app.route('/clipboard/list', methods=['GET'])
 def clipboard_list():
     """显示所有 ClipboardItem 的列表，带分页"""
-    page = request.args.get('page', 1, type=int)  # 获取当前页码，默认为第一页
-    per_page = 10  # 每页显示的项目数量
+    with session_scope() as local_session:
+        page = request.args.get('page', 1, type=int)  # 获取当前页码，默认为第一页
+        per_page = 10  # 每页显示的项目数量
 
-    total_items = session.query(ClipboardItem).count()
-    total_pages = (total_items + per_page - 1) // per_page
+        total_items = local_session.query(ClipboardItem).count()
+        total_pages = (total_items + per_page - 1) // per_page
 
-    items = session.query(ClipboardItem).order_by(ClipboardItem.timestamp.desc()) \
-        .offset((page - 1) * per_page).limit(per_page).all()
+        items = local_session.query(ClipboardItem).order_by(ClipboardItem.timestamp.desc()) \
+            .offset((page - 1) * per_page).limit(per_page).all()
 
-    # 生成简化页码列表
-    def get_pagination_range(current, total):
-        if total <= 5:
-            return list(range(1, total + 1))
-        elif current < 4:
-            return [1, 2, 3, 4, 5, None, total]
-        elif current > total - 3:
-            return [1, None] + list(range(total - 4, total + 1))
-        else:
-            return [1, None] + list(range(current - 2, current + 3)) + [None, total]
+        # 生成简化页码列表
+        def get_pagination_range(current, total):
+            if total <= 5:
+                return list(range(1, total + 1))
+            elif current < 4:
+                return [1, 2, 3, 4, 5, None, total]
+            elif current > total - 3:
+                return [1, None] + list(range(total - 4, total + 1))
+            else:
+                return [1, None] + list(range(current - 2, current + 3)) + [None, total]
 
-    pagination_range = get_pagination_range(page, total_pages)
+        pagination_range = get_pagination_range(page, total_pages)
 
-    return render_template(
-        'clipboard_list.html',
-        items=items,
-        current_page=page,
-        total_pages=total_pages,
-        per_page=per_page,
-        pagination_range=pagination_range
-    )
+        return render_template(
+            'clipboard_list.html',
+            items=items,
+            current_page=page,
+            total_pages=total_pages,
+            per_page=per_page,
+            pagination_range=pagination_range
+        )
 
 
 @app.route('/clipboard/create', methods=['GET', 'POST'])
@@ -482,6 +485,12 @@ def export_selected():
         download_name='剪贴板选中导出.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
+@app.teardown_request
+def shutdown_session(exception=None):
+    """确保请求结束后关闭会话"""
+    if hasattr(app, 'db_session'):
+        app.db_session.remove()
 
 
 

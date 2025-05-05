@@ -61,11 +61,18 @@ class BackendThread(QThread):
     started_signal = Signal()
 
     def run(self):
-        # 后台任务
-        # run_backend()
-        socketio.run(flask_app, host='0.0.0.0', port=5000,allow_unsafe_werkzeug=True)
-        # 发出信号，表示后台任务已启动
-        self.started_signal.emit()
+        try:
+            # 发出信号，表示后台任务已启动
+            self.started_signal.emit()
+            socketio.run(
+                flask_app,
+                host='0.0.0.0',
+                port=5000,
+                allow_unsafe_werkzeug=True,
+                debug=False  # 生产环境关闭调试
+            )
+        except Exception as e:
+            logging.error(f"后端启动失败: {e}")
 
 class ClipboardHistoryApp(QMainWindow):
     def __init__(self):

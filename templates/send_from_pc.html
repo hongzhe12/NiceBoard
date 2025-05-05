@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>从电脑发送内容</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 1rem;
+            margin-top: 2rem;
+        }
+        .btn {
+            width: 100%;
+        }
+        #progressContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-3 text-center">💻 从电脑发送内容到手机</h4>
+            <form id="uploadForm" action="/clipboard/send_from_pc" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="textContent" class="form-label">文本内容</label>
+                    <textarea class="form-control" id="textContent" name="text_content" rows="4" placeholder="输入要发送的文本..." style="resize: none;"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="fileInput" class="form-label">文件上传</label>
+                    <input type="file" class="form-control" id="fileInput" name="file">
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" id="submitBtn" class="btn btn-primary">发送到手机</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

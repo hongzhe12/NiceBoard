@@ -1,8 +1,10 @@
 import os
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Index
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Index, QueuePool
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -21,8 +23,14 @@ else:
 
 # 初始化数据库连接
 Base = declarative_base()
-engine = create_engine(db_url, echo=False)
-Session = sessionmaker(bind=engine)
+engine = create_engine(
+    db_url,
+    poolclass=QueuePool,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True  # 自动检测连接有效性
+)
+Session = sessionmaker(bind=engine, expire_on_commit=False)  # 关键修改
 
 
 # 获取数据库路径（返回字符串）
@@ -316,3 +324,18 @@ def filter_clipboard_history(text, limit=50):
         return items
     finally:
         session.close()
+
+
+# 添加会话管理工具
+@contextmanager
+def session_scope():
+    """提供事务范围的会话管理"""
+    local_session = Session()
+    try:
+        yield local_session
+        local_session.commit()
+    except SQLAlchemyError as e:
+        local_session.rollback()
+        raise e
+    finally:
+        local_session.close()
