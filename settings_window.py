@@ -6,7 +6,6 @@ import keyboard
 
 from auto_start import enable_auto_start, disable_auto_start
 from input_form_dialog import InputFormDialog
-from long_text_viewer import LongTextViewer
 from models import get_db_path
 from settings_config import config_instance
 from ui_settings_window import Ui_SettingsForm
