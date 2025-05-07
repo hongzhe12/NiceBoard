@@ -2,7 +2,6 @@ import logging
 import os
 import socket
 import sys
-import threading
 
 from PySide6.QtCore import Qt,  QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
@@ -113,7 +112,7 @@ class ClipboardHistoryApp(QMainWindow):
         self._load_history()
 
         # 设置圆角遮罩
-        self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
+        # self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
 
         # 连接搜索框信号
         self.ui.search_box.textChanged.connect(self.filter_history)
@@ -464,7 +463,7 @@ class ClipboardHistoryApp(QMainWindow):
 
     def resizeEvent(self, event):
         """ 窗口大小改变时更新遮罩 """
-        self.setMaskCornerRadius(10)
+        # self.setMaskCornerRadius(10)
         super().resizeEvent(event)
 
     def _load_history(self, limit=50):
