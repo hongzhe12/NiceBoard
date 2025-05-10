@@ -37,6 +37,8 @@ logging.basicConfig(
     encoding='utf-8'
 )
 
+degree = 10
+
 # 搜索工作线程类
 class SearchWorker(QRunnable):
     class Signals(QObject):
@@ -82,7 +84,7 @@ class ClipboardHistoryApp(QMainWindow):
         self.settings_window = None  # 添加设置窗口引用
         self.tray_icon = None  # 托盘图标
         # 初始化设置
-        self.setWindowTitle("剪贴板历史记录")
+        # self.setWindowTitle("剪贴板历史记录")
 
         # 双击复制到粘贴板
         self.ui.history_list.itemDoubleClicked.connect(self._copy_to_clipboard)
@@ -112,7 +114,7 @@ class ClipboardHistoryApp(QMainWindow):
         self._load_history()
 
         # 设置圆角遮罩
-        # self.setMaskCornerRadius(12)  # 圆角值需与QSS一致
+        self.setMaskCornerRadius(degree)  # 圆角值需与QSS一致
 
         # 连接搜索框信号
         self.ui.search_box.textChanged.connect(self.filter_history)
@@ -463,7 +465,7 @@ class ClipboardHistoryApp(QMainWindow):
 
     def resizeEvent(self, event):
         """ 窗口大小改变时更新遮罩 """
-        # self.setMaskCornerRadius(10)
+        self.setMaskCornerRadius(degree)
         super().resizeEvent(event)
 
     def _load_history(self, limit=50):
