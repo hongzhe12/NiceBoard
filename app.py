@@ -116,6 +116,8 @@ class ClipboardHistoryApp(QMainWindow):
         # 设置圆角遮罩
         self.setMaskCornerRadius(degree)  # 圆角值需与QSS一致
 
+
+
         # 连接搜索框信号
         self.ui.search_box.textChanged.connect(self.filter_history)
         # 拖动相关变量
@@ -133,10 +135,14 @@ class ClipboardHistoryApp(QMainWindow):
         # 后台线程
         self.backend_thread = None
 
-        # 添加以下内容
+        # 搜索防抖优化（新增这部分）
         self._search_timer = QTimer()
         self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(500)  # 设置300ms防抖间隔
+        self._search_timer.timeout.connect(self._perform_search)
+        # 线程池优化（修改这部分）
         self._thread_pool = QThreadPool()
+        self._thread_pool.setMaxThreadCount(1)  # 限制同时只有一个搜索线程
         self._current_search_text = ""
 
         # 日志窗口
@@ -388,49 +394,31 @@ class ClipboardHistoryApp(QMainWindow):
         self.drag_pos = None
 
     def filter_history(self, text):
-        """根据搜索文本过滤列表"""
-        self.ui.history_list.clear()
-        items = filter_clipboard_history(text)
-        for item in items:
-            # 创建列表项
-            list_item = QListWidgetItem(item.content)
+        """优化后的搜索方法（单点防抖优化版）"""
+        # 停止之前的计时器（关键防抖步骤）
+        # self._search_timer.stop()
 
-            # 如果有标签，设置提示
-            if item.tags:
-                list_item.setToolTip(f"标签：{item.tags}")
-            elif len(item.content) < 500:
-                list_item.setToolTip(item.content)
-            else:
-                list_item.setToolTip("内容过长，无法显示")
-
-            self.ui.history_list.addItem(list_item)
-
-    def filter_history(self, text):
-        # 保存当前搜索文本
-        self._current_search_text = text
-
-        # 停止之前的计时器
-        self._search_timer.stop()
-
-        # 如果是空搜索，直接加载全部历史
+        # 如果是空搜索，立即显示全部（不需要防抖）
         if not text.strip():
+            # 启动防抖计时器（500ms后执行实际搜索）
+            self._search_timer.start()
             self._load_history()
             return
 
         # 显示加载状态
         self.ui.history_list.clear()
-        self.ui.history_list.addItem("搜索中...")
+        loading_item = QListWidgetItem("搜索中...")
+        loading_item.setForeground(QColor(150, 150, 150))  # 灰色文字提示
+        self.ui.history_list.addItem(loading_item)
 
-        # 设置300ms的防抖延迟
-        self._search_timer.timeout.connect(lambda: self._perform_search(text))
-        self._search_timer.start(300)
+        # 启动防抖计时器（500ms后执行实际搜索）
+        self._search_timer.start()
 
-    def _perform_search(self, text):
-        # 确保当前搜索文本仍然匹配
-        if text != self._current_search_text:
-            return
+    def _perform_search(self):
+        """实际执行搜索的方法"""
+        text = self.ui.search_box.text().strip()
 
-        # 创建并启动搜索工作线程
+        # 创建搜索工作线程
         worker = SearchWorker(text)
         worker.signals.result.connect(self._update_search_results)
         self._thread_pool.start(worker)

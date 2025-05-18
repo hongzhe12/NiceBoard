@@ -78,7 +78,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.SMTP_USER }}
         password: ${{ secrets.SMTP_PASSWORD }}
-        subject: "好贴板更新通知-支持编码导入导出配置"
+        subject: "好贴板更新通知-搜索防抖优化"
         body: |
           🚀 项目名称: ${{ github.repository }}
           🌿 触发分支: ${{ github.ref }}
