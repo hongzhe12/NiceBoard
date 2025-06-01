@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>352</width>
-    <height>457</height>
+    <width>318</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -277,6 +277,9 @@ SettingsWindow QCheckBox {
         <width>0</width>
         <height>41</height>
        </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">margin: 10px 10px 0 10px;</string>
       </property>
       <property name="placeholderText">
        <string>Search...</string>

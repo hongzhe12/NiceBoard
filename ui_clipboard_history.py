@@ -22,7 +22,7 @@ class Ui_SimpleClipboardHistory(object):
     def setupUi(self, SimpleClipboardHistory):
         if not SimpleClipboardHistory.objectName():
             SimpleClipboardHistory.setObjectName(u"SimpleClipboardHistory")
-        SimpleClipboardHistory.resize(352, 457)
+        SimpleClipboardHistory.resize(318, 390)
         SimpleClipboardHistory.setStyleSheet(u"/* \u4e3b\u7a97\u53e3\u6837\u5f0f - \u6539\u8fdb\u7684\u4e9a\u514b\u529b\u6bdb\u73bb\u7483\u6548\u679c */\n"
 "SimpleClipboardHistory {\n"
 "    background: rgba(245, 245, 245, 0.85);  /* \u63d0\u9ad8\u4e0d\u900f\u660e\u5ea6 */\n"
@@ -289,6 +289,7 @@ class Ui_SimpleClipboardHistory(object):
         self.search_box = QLineEdit(self.centralwidget)
         self.search_box.setObjectName(u"search_box")
         self.search_box.setMinimumSize(QSize(0, 41))
+        self.search_box.setStyleSheet(u"margin: 10px 10px 0 10px;")
 
         self.gridLayout.addWidget(self.search_box, 0, 0, 1, 1)
 

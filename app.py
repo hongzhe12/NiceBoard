@@ -1,9 +1,10 @@
 import logging
 import os
+import re
 import socket
 import sys
 
-from PySide6.QtCore import Qt,  QEvent, QUrl
+from PySide6.QtCore import Qt, QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog
@@ -12,11 +13,11 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu,
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
 from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
-    filter_clipboard_history,  update_tags_for_clipboard_item, find_tags_by_content
+    filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 from utils import LogDisplayWindow
-from models import   auto_clean_history
+from models import auto_clean_history
 from settings_config import config_instance  # 添加这行导入
 
 # 获取当前用户的应用数据目录
@@ -29,6 +30,7 @@ from PySide6.QtCore import QThread, Signal
 from backend import socketio
 from backend import app as flask_app
 from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
+
 # 配置日志记录
 logging.basicConfig(
     filename=log_file,
@@ -38,6 +40,7 @@ logging.basicConfig(
 )
 
 degree = 10
+
 
 # 搜索工作线程类
 class SearchWorker(QRunnable):
@@ -51,11 +54,12 @@ class SearchWorker(QRunnable):
 
     def run(self):
         try:
-            results = filter_clipboard_history(self.search_text)
+            results = filter_clipboard_history(self.search_text, use_regex=True,limit=20)
             self.signals.result.emit(results)
         except Exception as e:
             logging.error(f"搜索出错: {e}")
             self.signals.result.emit([])
+
 
 class BackendThread(QThread):
     # 信号用于通知主线程后台任务已启动
@@ -74,6 +78,7 @@ class BackendThread(QThread):
             )
         except Exception as e:
             logging.error(f"后端启动失败: {e}")
+
 
 class ClipboardHistoryApp(QMainWindow):
     def __init__(self):
@@ -116,8 +121,6 @@ class ClipboardHistoryApp(QMainWindow):
         # 设置圆角遮罩
         self.setMaskCornerRadius(degree)  # 圆角值需与QSS一致
 
-
-
         # 连接搜索框信号
         self.ui.search_box.textChanged.connect(self.filter_history)
         # 拖动相关变量
@@ -147,7 +150,6 @@ class ClipboardHistoryApp(QMainWindow):
 
         # 日志窗口
         self.log_window = None
-
 
     def setup_system_tray(self):
         """创建系统托盘图标"""
@@ -181,7 +183,6 @@ class ClipboardHistoryApp(QMainWindow):
         tray_menu.addSeparator()
         quit_action = tray_menu.addAction("退出")
         quit_action.triggered.connect(self.quit_application)
-
 
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self.on_tray_activated)
@@ -308,21 +309,20 @@ class ClipboardHistoryApp(QMainWindow):
         menu.exec(self.ui.history_list.mapToGlobal(pos))
 
     # 设置标签方法
-    def set_label(self,text):
+    def set_label(self, text):
         """设置标签"""
 
         tag = find_tags_by_content(text)
         # 自定义数据结构，用于描述表单字段，添加了默认值
         form_structure = [
-            {"label": f"为【{text[:10]+'...' if len(text) > 10 else text }】设置标签", "type": "text", "default": tag}
+            {"label": f"为【{text[:10] + '...' if len(text) > 10 else text}】设置标签", "type": "text", "default": tag}
         ]
 
         dialog = InputFormDialog(form_structure, self)
         if dialog.exec() == QDialog.Accepted:
             values = dialog.get_input_values()
             label = values[0]
-            update_tags_for_clipboard_item(text,label)
-
+            update_tags_for_clipboard_item(text, label)
 
     def delete_selected_item(self):
         """安全删除当前选中项"""
@@ -460,8 +460,8 @@ class ClipboardHistoryApp(QMainWindow):
         """从数据库加载历史记录"""
         if limit is None:
             # 从配置中获取最大历史记录数
-            limit = config_instance.get('max_history', 50)
-        
+            limit = config_instance.get('max_history', 10)
+
         self.ui.history_list.clear()
         items = get_clipboard_history(limit)
         self._update_search_results(items)  # 重用相同的更新逻辑
@@ -579,11 +579,7 @@ class ClipboardHistoryApp(QMainWindow):
             super().closeEvent(event)
 
 
-
-
 if __name__ == "__main__":
-
-
     app = QApplication(sys.argv)
 
     # 全局样式
@@ -600,4 +596,3 @@ if __name__ == "__main__":
 
     window = ClipboardHistoryApp()
     sys.exit(app.exec())
-

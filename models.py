@@ -1,4 +1,5 @@
 import os
+import re
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -44,13 +45,12 @@ def get_db_path():
     return str(appdata_dir / 'clipboard_history.db')
 
 
-
 # 在ClipboardItem类中添加tags字段，并为content字段添加索引
 class ClipboardItem(Base):
     """剪贴板历史记录模型"""
     __tablename__ = 'clipboard_history'
     id = Column(Integer, primary_key=True)
-    content = Column(String(50000))
+    content = Column(String(500000))
     timestamp = Column(DateTime, default=datetime.now)
     tags = Column(String(200), default="")
 
@@ -225,7 +225,7 @@ def get_clipboard_history(limit=50):
         session.close()
 
 
-def add_clipboard_item(text,tags = ""):
+def add_clipboard_item(text, tags=""):
     """
     添加新的剪贴板记录，如果记录已存在则不添加。
     :param text: 剪贴板记录的内容
@@ -239,7 +239,7 @@ def add_clipboard_item(text,tags = ""):
             .first()
         if not exists:
             # 插入新记录
-            new_item = ClipboardItem(content=text,tags = tags)
+            new_item = ClipboardItem(content=text, tags=tags)
             session.add(new_item)
             session.commit()
             return True
@@ -317,6 +317,70 @@ def filter_clipboard_history(text, limit=50):
                 .order_by(ClipboardItem.timestamp.desc()) \
                 .limit(remaining) \
                 .all()
+            items = tag_items + content_items
+        else:
+            items = tag_items
+
+        return items
+    finally:
+        session.close()
+
+
+def filter_clipboard_history(text, limit=50, use_regex=False):
+    """
+    根据搜索文本过滤剪贴板历史记录，优先按标签搜索，其次按内容搜索。
+    :param text: 搜索文本或正则表达式
+    :param limit: 要返回的记录数量上限，默认为50
+    :param use_regex: 是否使用正则表达式进行搜索，默认为False
+    :return: 过滤后的剪贴板历史记录列表
+    """
+    session = Session()
+    try:
+        # 编译正则表达式（如果启用）
+        regex = None
+        if use_regex:
+            try:
+                regex = re.compile(text)
+            except re.error:
+                # 正则表达式无效，回退到普通文本搜索
+                use_regex = False
+
+        if use_regex:
+            # 使用正则表达式搜索标签
+            tag_items = [
+                            item for item in session.query(ClipboardItem)
+                    .order_by(ClipboardItem.timestamp.desc())
+                    .all()
+                            if item.tags and regex.search(item.tags)
+                        ][:limit]
+        else:
+            # 普通文本搜索标签
+            tag_items = session.query(ClipboardItem) \
+                .filter(ClipboardItem.tags.contains(text)) \
+                .order_by(ClipboardItem.timestamp.desc()) \
+                .limit(limit) \
+                .all()
+
+        tag_count = len(tag_items)
+
+        if tag_count < limit:
+            # 标签匹配数量不足，再按内容搜索补足
+            remaining = limit - tag_count
+            if use_regex:
+                content_items = [
+                                    item for item in session.query(ClipboardItem)
+                        .order_by(ClipboardItem.timestamp.desc())
+                        .all()
+                                    if (item.content and regex.search(item.content) and
+                                        item.id not in [i.id for i in tag_items])
+                                ][:remaining]
+            else:
+                content_items = session.query(ClipboardItem) \
+                    .filter(ClipboardItem.content.contains(text)) \
+                    .filter(~ClipboardItem.id.in_([item.id for item in tag_items])) \
+                    .order_by(ClipboardItem.timestamp.desc()) \
+                    .limit(remaining) \
+                    .all()
             items = tag_items + content_items
         else:
             items = tag_items
