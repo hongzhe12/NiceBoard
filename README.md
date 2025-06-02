@@ -3,9 +3,13 @@
 ## 产品简介
 **好贴板 (NiceBoard)** 是一款专为提升用户效率而设计的粘贴板管理工具。它不仅能够自动存储用户的粘贴板内容，还支持快速查询和分类管理，帮助用户轻松应对繁杂的信息处理任务。无论是开发者、学生还是办公人士，都能从中受益。
 
-我们相信，粘贴板不仅仅是一个临时的工具，更是您知识和创意的延续。好贴板让您的粘贴内容有迹可循，随时调用。
-
 ---
+
+![QQ_1748861813335](https://github.com/user-attachments/assets/3d98e40f-20b6-4958-a8c5-c1ffaca8371c)
+![image](https://github.com/user-attachments/assets/6e1618d4-c66f-43d3-aaf7-211e1977dc1a)
+![QQ_1748861865697](https://github.com/user-attachments/assets/83fb1914-de56-4261-8da4-3adc6d0585b3)
+![QQ_1748861972989](https://github.com/user-attachments/assets/7238fbd5-946b-42bd-a920-bad22a457c5e)
+
 
 ## 核心功能
 
