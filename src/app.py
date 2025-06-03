@@ -1,4 +1,4 @@
-import logging
+
 import os
 import socket
 import sys
@@ -8,21 +8,20 @@ from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDeskto
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog
 
+from log.log import log_file
+from utils.config_set import config_instance
 from utils.hotkey_manager import HotkeyManager
 from utils.input_form_dialog import InputFormDialog
 from models import auto_clean_history
 from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
-from utils.settings_config import config_instance  # 添加这行导入
+
 from settings_window import SettingsWindow
 from ui.ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 from resources import resources_rc # 加载资源文件
 # 获取当前用户的应用数据目录
 from utils.log_display import LogDisplayWindow
-
-log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
-os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, 'app.log')
+from log.log import logging as _log
 
 from PySide6.QtCore import QThread, Signal
 
@@ -30,13 +29,7 @@ from backen.backend import socketio
 from backen.backend import app as flask_app
 from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 
-# 配置日志记录
-logging.basicConfig(
-    filename=log_file,
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    encoding='utf-8'
-)
+
 
 degree = 10
 
@@ -56,7 +49,7 @@ class SearchWorker(QRunnable):
             results = filter_clipboard_history(self.search_text, use_regex=True, limit=20)
             self.signals.result.emit(results)
         except Exception as e:
-            logging.error(f"搜索出错: {e}")
+            _log.error(f"搜索出错: {e}")
             self.signals.result.emit([])
 
 
@@ -76,7 +69,7 @@ class BackendThread(QThread):
                 debug=False  # 生产环境关闭调试
             )
         except Exception as e:
-            logging.error(f"后端启动失败: {e}")
+            _log.error(f"后端启动失败: {e}")
 
 
 class ClipboardHistoryApp(QMainWindow):
@@ -498,7 +491,7 @@ class ClipboardHistoryApp(QMainWindow):
             QTimer.singleShot(100, lambda: self._paste_to_active_window(selected_text))
 
         except Exception as e:
-            logging.error(f"复制粘贴失败: {e}")
+            _log.error(f"复制粘贴失败: {e}")
 
     def _paste_to_active_window(self, text):
         """实际执行粘贴操作的辅助方法"""
@@ -519,7 +512,7 @@ class ClipboardHistoryApp(QMainWindow):
             QTimer.singleShot(200, lambda: self.clipboard.setText(original_clipboard))
 
         except Exception as e:
-            logging.error(f"自动粘贴失败: {e}")
+            _log.error(f"自动粘贴失败: {e}")
             # 如果失败，至少确保文本已在剪贴板中
             self.clipboard.setText(text)
 
@@ -536,14 +529,14 @@ class ClipboardHistoryApp(QMainWindow):
 
     def toggle_window(self):
         """切换窗口显示状态"""
-        logging.info(f"toggle_window 方法被调用")
+        _log.info(f"toggle_window 方法被调用")
         if self.isVisible():
             self.hide()
         else:
             self._show_at_cursor()
 
     def _show_at_cursor(self):
-        logging.info(f" _show_at_cursor 方法被调用")
+        _log.info(f" _show_at_cursor 方法被调用")
         # 设置窗口属性
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |
@@ -556,7 +549,7 @@ class ClipboardHistoryApp(QMainWindow):
         x = min(max(cursor_pos.x(), screen.x()), screen.right() - self.width())
         y = min(max(cursor_pos.y(), screen.y()), screen.bottom() - self.height())
 
-        logging.info(f" 窗口将移动到位置: ({x}, {y})")
+        _log.info(f" 窗口将移动到位置: ({x}, {y})")
         self.move(int(x), int(y))
         self.show()
 

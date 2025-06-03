@@ -1,7 +1,7 @@
 import winreg as reg
 import sys
 import os
-import logging
+from log.log import logging as _log
 
 
 def enable_auto_start():
@@ -14,10 +14,10 @@ def enable_auto_start():
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
         with reg.OpenKey(key, key_path, 0, reg.KEY_WRITE) as reg_key:
             reg.SetValueEx(reg_key, "好贴板", 0, reg.REG_SZ, command)
-        logging.info("开机自启动设置成功")
+        _log.info("开机自启动设置成功")
         return True
     except Exception as e:
-        logging.error(f"开机自启动设置失败: {e}")
+        _log.error(f"开机自启动设置失败: {e}")
         return False
 
 
@@ -27,13 +27,13 @@ def disable_auto_start():
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
         with reg.OpenKey(key, key_path, 0, reg.KEY_WRITE) as reg_key:
             reg.DeleteValue(reg_key, "好贴板")
-        logging.info("已禁用开机自启动")
+        _log.info("已禁用开机自启动")
         return True
     except WindowsError as e:
         if e.winerror == 2:  # 注册表项不存在
             return True
-        logging.error(f"禁用开机自启动失败: {e}")
+        _log.error(f"禁用开机自启动失败: {e}")
         return False
     except Exception as e:
-        logging.error(f"禁用开机自启动失败: {e}")
+        _log.error(f"禁用开机自启动失败: {e}")
         return False

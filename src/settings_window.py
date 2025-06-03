@@ -4,9 +4,10 @@ from PySide6.QtWidgets import QWidget, QMessageBox, QDialog, QApplication
 import keyboard
 
 from utils.auto_start import enable_auto_start, disable_auto_start
+from utils.config_set import config_instance
 from utils.input_form_dialog import InputFormDialog
 from models import get_db_path
-from utils.settings_config import config_instance
+
 from ui.ui_settings_window import Ui_SettingsForm
 
 
@@ -56,17 +57,17 @@ class SettingsWindow(QWidget):
 
         return QMessageBox.information(self, "导入提示", "失败！")
 
-
     def export_btn_clicked(self):
         data = config_instance.export_config()
         # 复制到剪贴板
         QApplication.clipboard().setText(data)
         QMessageBox.information(self, "导出成功", "配置已复制到剪贴板")
 
-
     def database_btn_clicked(self):
         file_path = get_db_path()
         form_structure = [
+            {"label": "数据库类型(支持：mysql、postgresql)", "type": "text",
+             "default": config_instance.get('db_type', "sqlite")},
             {"label": "数据库名称", "type": "text",
              "default": config_instance.get('db_name', file_path)},
             {"label": "主机地址", "type": "text",
@@ -82,19 +83,19 @@ class SettingsWindow(QWidget):
         dialog = InputFormDialog(form_structure, self)
         if dialog.exec() == QDialog.Accepted:
             values = dialog.get_input_values()
-            
-            # 更新配置
-            config_instance.set('db_name', values[0])
-            config_instance.set('host', values[1])
-            config_instance.set('port', values[2])
-            config_instance.set('username', values[3])
-            config_instance.set('password', values[4])
-            
-            # 保存配置
-            if config_instance.save_config():
-                QMessageBox.information(self, "成功", "数据库配置已成功更新")
-            else:
-                QMessageBox.warning(self, "错误", "保存配置失败")
+            config_instance.update(
+                {
+                    'db_type': values[0],
+                    'db_name': values[1],
+                    'host': values[2],
+                    'port': values[3],
+                    'username': values[4],
+                    'password': values[5],
+
+                }, save=True
+            )
+
+            QMessageBox.information(self, "成功", "数据库配置已成功更新")
 
     def save_settings(self):
         try:
@@ -133,7 +134,7 @@ class SettingsWindow(QWidget):
                 self.hide()
             else:
                 QMessageBox.warning(self, "错误", "保存配置失败")
-                
+
         except ValueError:
             QMessageBox.warning(self, "错误", "请输入有效数字")
 

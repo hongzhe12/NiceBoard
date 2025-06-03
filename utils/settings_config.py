@@ -121,5 +121,5 @@ class MyConfig:
 
 
 # 全局配置实例
-config_instance = MyConfig()
+# config_instance = MyConfig()
 

@@ -8,19 +8,31 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
-
+from log.log import logging as _log
 # 获取数据库配置
-from utils.log_display import load_db_config
 
-db_config = load_db_config()
-# 使用 get() 方法安全获取 'enable' 键的值，默认值为 False
-if db_config.get('enable', False):
-    db_url = f"postgresql://{db_config.get('username', '')}:{db_config.get('password', '')}@{db_config.get('host', '')}:{db_config.get('port', '')}/{db_config.get('db_name', '')}"
+
+# 确保应用数据目录存在
+from utils.config_set import config_instance
+
+appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
+appdata_dir.mkdir(exist_ok=True)
+
+# 根据配置选择数据库类型
+db_type = config_instance.get('db_type', 'sqlite').lower()
+
+if db_type == 'postgresql' and config_instance.get('enable', False):
+    # 使用 PostgreSQL 数据库
+    db_url = f"postgresql://{config_instance.get('username', '')}:{config_instance.get('password', '')}@{config_instance.get('host', '')}:{config_instance.get('port', '')}/{config_instance.get('db_name', '')}"
+
+elif db_type == 'mysql' and config_instance.get('enable', False):
+    # 使用 MySQL 数据库
+    db_url = f"mysql+pymysql://{config_instance.get('username', '')}:{config_instance.get('password', '')}@{config_instance.get('host', '')}:{config_instance.get('port', 3306)}/{config_instance.get('db_name', '')}"
 else:
-    # 如果数据库未启用，使用本地 SQLite 数据库
-    appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
-    appdata_dir.mkdir(exist_ok=True)
+    # 默认使用本地 SQLite 数据库
     db_url = f"sqlite:///{appdata_dir / 'clipboard_history.db'}"
+
+_log.info(f"数据库连接:{db_url}")
 
 # 初始化数据库连接
 Base = declarative_base()
@@ -137,8 +149,7 @@ def auto_clean_history():
     """
     session = Session()
     try:
-        settings = load_db_config()
-        max_history = settings.get('max_history', 100000)
+        max_history = config_instance.get('max_history', 100000)
 
         # 查询当前记录总数
         total = session.query(ClipboardItem).count()
