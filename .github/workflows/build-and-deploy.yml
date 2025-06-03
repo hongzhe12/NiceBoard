@@ -78,7 +78,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.SMTP_USER }}
         password: ${{ secrets.SMTP_PASSWORD }}
-        subject: "好贴板更新通知-搜索防抖优化"
+        subject: "好贴板更新通知"
         body: |
           🚀 项目名称: ${{ github.repository }}
           🌿 触发分支: ${{ github.ref }}
@@ -87,9 +87,6 @@ jobs:
           
           📥 直接下载（GitHub下载）:
           [NiceBoard.exe](https://github.com/${{ github.repository }}/releases/download/v${{ github.run_number }}/NiceBoard.exe)
-          
-          📥 国内用户（坚果云极速下载-推荐）:
-          [好贴板.exe](https://www.jianguoyun.com/p/DSLPOuoQi5y1DRiunPYFIAA)
           
           📊 更新日志:
           [更新日志](https://www.yuque.com/u26095674/kpaoff/pnzeyhacil52tkrr?singleDoc)
