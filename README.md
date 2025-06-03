@@ -5,15 +5,6 @@ NiceBoard 是一款基于 PySide6 和 Flask 开发的跨平台剪贴板管理工
 
 ---
 
-![QQ_1748861813335](https://github.com/user-attachments/assets/3d98e40f-20b6-4958-a8c5-c1ffaca8371c)
-
-![image](https://github.com/user-attachments/assets/6e1618d4-c66f-43d3-aaf7-211e1977dc1a)
-
-![QQ_1748861865697](https://github.com/user-attachments/assets/83fb1914-de56-4261-8da4-3adc6d0585b3)
-
-![QQ_1748861972989](https://github.com/user-attachments/assets/7238fbd5-946b-42bd-a920-bad22a457c5e)
-
-
 ## 核心功能
 1. **剪贴板历史管理**
    - 自动记录所有复制内容，支持文本、文件（需通过 Web 端传输）
@@ -48,6 +39,16 @@ NiceBoard 是一款基于 PySide6 和 Flask 开发的跨平台剪贴板管理工
 - **热键监听**：pynput 实现全局键盘监听
 - **文件处理**：openpyxl 解析 Excel，BeautifulSoup 解析书签 HTML
 
+## 截图
+
+![QQ_1748955932674](https://github.com/user-attachments/assets/c3b8b03b-754d-4115-aa06-78f640a184c7)
+
+
+![image](https://github.com/user-attachments/assets/6e1618d4-c66f-43d3-aaf7-211e1977dc1a)
+
+![QQ_1748861865697](https://github.com/user-attachments/assets/83fb1914-de56-4261-8da4-3adc6d0585b3)
+
+![QQ_1748955974176](https://github.com/user-attachments/assets/5fb962cd-97f6-4c05-a195-aaf7b7a1c898)
 
 ## 目录结构
 
