@@ -6,7 +6,7 @@ import keyboard
 from utils.auto_start import enable_auto_start, disable_auto_start
 from utils.config_set import config_instance
 from utils.input_form_dialog import InputFormDialog
-from models import get_db_path
+from src.models import get_db_path
 
 from ui.ui_settings_window import Ui_SettingsForm
 

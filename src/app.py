@@ -12,11 +12,11 @@ from log.log import log_file
 from utils.config_set import config_instance
 from utils.hotkey_manager import HotkeyManager
 from utils.input_form_dialog import InputFormDialog
-from models import auto_clean_history
-from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
+from src.models import auto_clean_history
+from src.models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
 
-from settings_window import SettingsWindow
+from src.settings_window import SettingsWindow
 from ui.ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 from resources import resources_rc # 加载资源文件
 # 获取当前用户的应用数据目录
