@@ -100,40 +100,59 @@ class SettingsWindow(QWidget):
     def save_settings(self):
         try:
             # 保存数据库启用状态
-            config_instance.set('enable', self.ui.enable_db_box.isChecked())
+            config_instance.update(
+                {
+                    'enable': self.ui.enable_db_box.isChecked()
+                }
+            )
 
             # 保存最大记录数
             max_history = int(self.ui.history_limit.text())
             if not 1 <= max_history <= 100000:
                 QMessageBox.warning(self, "错误", "请输入1-100000之间的整数")
                 return
-            config_instance.set('max_history', max_history)
+
+            config_instance.update(
+                {
+                    'max_history': max_history
+                }
+            )
 
             # 保存热键设置
             hotkey = self.ui.hotkey_edit.text().lower()
-            config_instance.set('hotkey', hotkey)
+
+            config_instance.update(
+                {
+                    'hotkey': hotkey
+                }
+            )
 
             # 保存开机自启设置
             auto_start = self.ui.auto_start.isChecked()
-            config_instance.set('auto_start', auto_start)
+
+            config_instance.update(
+                {
+                    'auto_start': auto_start
+                }
+            )
 
             # 保存所有配置
-            if config_instance.save_config():
-                # 处理开机自启的实际设置
-                if auto_start:
-                    enable_auto_start()
-                else:
-                    disable_auto_start()
+            config_instance.save()
 
-                # 检查热键是否修改
-                if hotkey.lower() not in ('f9', 'f9'):
-                    QMessageBox.information(self, "提示", "热键修改后，需要重启好贴板！")
-                else:
-                    QMessageBox.information(self, "成功", "设置已保存！")
-
-                self.hide()
+            # 处理开机自启的实际设置
+            if auto_start:
+                enable_auto_start()
             else:
-                QMessageBox.warning(self, "错误", "保存配置失败")
+                disable_auto_start()
+
+            # 检查热键是否修改
+            if hotkey.lower() not in ('f9', 'f9'):
+                QMessageBox.information(self, "提示", "热键修改后，需要重启好贴板！")
+            else:
+                QMessageBox.information(self, "成功", "设置已保存！")
+
+            self.hide()
+
 
         except ValueError:
             QMessageBox.warning(self, "错误", "请输入有效数字")
