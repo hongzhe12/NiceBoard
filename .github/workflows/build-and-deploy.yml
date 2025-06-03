@@ -38,7 +38,7 @@ jobs:
           --add-data "static;static" \
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
-          app.py
+          src/app.py
 
     - name: Verify build output
       shell: bash
