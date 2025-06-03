@@ -35,7 +35,7 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed \
           --icon "icons/favicon.ico" \
-          --name "好贴板" \
+          --name "NiceBoard" \
           --add-data "static;static" \
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
