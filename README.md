@@ -27,10 +27,12 @@ NiceBoard 是一款基于 PySide6 和 Flask 开发的全能型剪贴板管理工
 
 
 ## 技术架构
-- **前端**：PySide6 实现原生 GUI，QSS 实现亚克力毛玻璃特效，资源系统集成 SVG 图标
-- **后端**：Flask + SocketIO 实现 Web 服务与实时通信，支持 RESTful API
-- **数据层**：SQLAlchemy ORM 支持多数据库切换，自动建表与数据迁移
-- **工具链**：pynput 实现全局热键监听，openpyxl 处理 Excel 导入/导出
+- **前端**：PySide6 实现原生 GUI，QSS 自定义样式
+- **后端**：Flask + SocketIO 实现 Web 服务和实时通信
+- **数据库**：SQLAlchemy 支持 SQLite（默认）和 PostgreSQL
+- **热键监听**：pynput 实现全局键盘监听
+- **文件处理**：openpyxl 解析 Excel，BeautifulSoup 解析书签 HTML
+
 
 
 ## 目录结构说明
