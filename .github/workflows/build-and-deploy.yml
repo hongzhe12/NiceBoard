@@ -34,13 +34,23 @@ jobs:
       shell: bash
       run: |
         pyinstaller --noconfirm --onefile --windowed \
-          --icon "icons/favicon.ico" \
-          --name "NiceBoard" \
-          --add-data "static;static" \
-          --add-data "templates;templates" \
-          --add-data "uploads;uploads" \
-          --add-data "src;src" \
-          src/app.py
+        --icon "icons/favicon.ico" \
+        --name "NiceBoard" \
+        --add-data "static;static" \
+        --add-data "templates;templates" \
+        --add-data "uploads;uploads" \
+        --add-data "backen;backen" \
+        --add-data "log;log" \
+        --add-data "resources;resources" \
+        --add-data "src;src" \
+        --add-data "templates;templates" \
+        --add-data "ui;ui" \
+        --add-data "utils;utils" \
+        --hidden-import "backen.backend" \
+        --hidden-import "src.models" \
+        --hidden-import "src.settings_window" \
+        --hidden-import "utils.config_set" \
+        src/app.py
 
     - name: Verify build output
       shell: bash
