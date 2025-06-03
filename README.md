@@ -1,9 +1,106 @@
-# NiceBoard：多功能剪贴板管理工具
+# NiceBoard：跨平台剪贴板管理与多设备同步工具
 
 ## 项目简介
-NiceBoard 是一款基于 PySide6 和 Flask 开发的跨平台剪贴板管理工具，支持实时记录剪贴板内容、历史搜索、标签管理、多设备同步等功能。通过友好的界面和强大的配置选项，帮助用户高效管理剪贴板数据，提升工作效率。
+NiceBoard 是一款基于 PySide6 和 Flask 开发的全能型剪贴板管理工具，旨在解决现代办公中剪贴板内容管理效率低下、多设备数据同步困难等问题。通过强大的历史记录管理、智能搜索、标签分类及跨设备传输功能，帮助用户实现剪贴板内容的高效管理与无缝流转。
 
----
+
+## 核心功能升级
+### 1. **增强型剪贴板管理**
+- **无限历史记录**：支持自定义最大记录数（默认10万条），自动清理旧记录，节省存储空间
+- **内容去重**：自动检测重复内容，避免冗余记录
+- **多格式支持**：除文本外，支持图片、文件（通过 Web 端）的预览与管理
+
+### 2. **智能搜索与标签系统**
+- **正则表达式搜索**：支持通过正则表达式进行内容匹配，精准定位目标记录
+- **动态标签过滤**：标签支持多级分类，可通过标签快速筛选相关内容
+- **搜索防抖优化**：输入延迟500ms触发搜索，减少无效查询
+
+### 3. **多设备同步与 Web 管理**
+- **局域网互传**：通过 SocketIO 实现电脑与手机/平板的实时数据同步
+- **Web 控制台**：内置 Flask 管理界面，支持远程查看、导出剪贴板数据
+- **二维码连接**：手机扫码快速建立连接，支持文件拖拽上传
+
+### 4. **系统集成与扩展**
+- **全局热键**：支持复杂组合热键（如 `Ctrl+Shift+X`），可自定义触发动作
+- **开机自启**：自动随系统启动，保持剪贴板管理连续性
+- **数据库扩展**：支持 SQLite/PostgreSQL/MySQL，满足不同场景存储需求
+
+
+## 技术架构
+- **前端**：PySide6 实现原生 GUI，QSS 实现亚克力毛玻璃特效，资源系统集成 SVG 图标
+- **后端**：Flask + SocketIO 实现 Web 服务与实时通信，支持 RESTful API
+- **数据层**：SQLAlchemy ORM 支持多数据库切换，自动建表与数据迁移
+- **工具链**：pynput 实现全局热键监听，openpyxl 处理 Excel 导入/导出
+
+
+## 目录结构说明
+```
+NiceBoard/
+├── backen/              # Flask后端模块
+│   ├── backend.py       # 核心服务逻辑
+│   └── __init__.py      # 模块初始化
+├── log/                 # 日志模块
+│   ├── log.py           # 日志配置
+│   └── __init__.py      # 
+├── resources/           # 资源文件
+│   ├── resources_rc.py  # Qt资源编译文件（图标等）
+│   └── __init__.py      # 
+├── src/                 # 核心应用模块
+│   ├── app.py           # GUI主程序
+│   ├── models.py        # 数据库模型与操作
+│   ├── settings_window.py # 设置窗口逻辑
+│   └── __init__.py      # 
+├── templates/           # Flask模板文件
+│   ├── clipboard_list.html # 剪贴板列表界面
+│   └── ...              # 其他Web界面模板
+├── ui/                  # UI文件
+│   ├── clipboard_history.ui # 主界面UI定义
+│   └── settings_window.ui # 设置界面UI定义
+└── utils/               # 工具模块
+    ├── auto_start.py    # 开机自启工具
+    ├── config_set.py    # 配置文件管理器
+    └── hotkey_manager.py# 热键管理类
+```
+
+
+## 安装与部署
+### 环境依赖
+- **基础环境**：Python 3.8+，PySide6>=6.8.3，Flask>=2.3.2
+- **可选依赖**：
+  - PostgreSQL/MySQL 驱动（用于远程数据库）
+  - pyexcel, openpyxl（用于Excel导入/导出）
+  - beautifulsoup4（用于书签解析）
+
+### 安装命令
+```bash
+# 克隆项目
+git clone https://github.com/your-username/NiceBoard.git
+cd NiceBoard
+
+# 创建虚拟环境（推荐）
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+.\venv\Scripts\activate   # Windows
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
+### 启动方式
+1. **GUI 程序**  
+   ```bash
+   python src/app.py
+   ```
+   - 首次运行会在 `%APPDATA%\好贴板` 生成配置文件和数据库
+
+2. **Web 后端（多设备同步）**  
+   ```bash
+   python backen/backend.py
+   ```
+   - 访问 `http://localhost:5000` 进入管理界面
+   - 手机扫码 `http://<主机IP>:5000/clipboard/listen` 连接
+
+## 截图
 
 ![QQ_1748861813335](https://github.com/user-attachments/assets/3d98e40f-20b6-4958-a8c5-c1ffaca8371c)
 
@@ -14,121 +111,54 @@ NiceBoard 是一款基于 PySide6 和 Flask 开发的跨平台剪贴板管理工
 ![QQ_1748861972989](https://github.com/user-attachments/assets/7238fbd5-946b-42bd-a920-bad22a457c5e)
 
 
-## 核心功能
-1. **剪贴板历史管理**
-   - 自动记录所有复制内容，支持文本、文件（需通过 Web 端传输）
-   - 历史记录按时间线展示，支持双击快速复制
-   - 可设置最大记录数（默认 10000 条），自动清理旧记录
+## 使用指南
+### 1. **基础操作**
+- **唤起窗口**：默认热键 `F9`（可在设置中修改）
+- **复制内容**：双击列表项自动复制，支持快捷键 `Ctrl+C`
+- **删除记录**：选中项按 `Delete` 键或右键菜单删除
 
-2. **高效搜索与标签系统**
-   - 支持关键词搜索内容或标签（支持正则表达式）
-   - 可为每条记录添加标签，通过标签快速过滤
-   - 搜索结果实时高亮显示
+### 2. **高级功能**
+- **标签管理**：右键点击记录 → "设置标签"，支持逗号分隔多个标签
+- **数据导出**：选中记录后点击 "导出选中"，支持 Excel 格式
+- **远程同步**：在 Web 端点击 "接收手机文件"，扫码后可传输文本/文件
 
-3. **热键与系统托盘**
-   - 自定义全局热键（默认 `F9`）快速唤起/隐藏界面
-   - 系统托盘图标支持右键菜单操作（设置、清空历史、退出等）
-   - 窗口置顶功能，支持拖动和圆角毛玻璃效果
-
-4. **多设备同步（通过 Web 端）**
-   - 内置 Flask 后端，支持局域网内设备互传文件/文本
-   - 生成二维码供手机扫码连接，实现跨设备剪贴板同步
-   - Web 管理界面支持数据导出/导入、远程查看历史记录
-
-5. **丰富的配置选项**
-   - 启用/禁用远程数据库（支持 PostgreSQL/SQLite）
-   - 自定义热键、开机自启、界面样式
-   - 导入/导出配置文件，支持 Base64 编码分享
+### 3. **配置调整**
+- **热键修改**：进入设置窗口 → "快捷热键"，按提示按下新组合键
+- **数据库切换**：勾选 "启用远程数据库"，填写 PostgreSQL/MySQL 连接信息
+- **同步历史**：在 Web 端 "设置" 中开启自动同步，数据实时跨设备更新
 
 
-## 技术架构
-- **前端**：PySide6 实现原生 GUI，QSS 自定义样式
-- **后端**：Flask + SocketIO 实现 Web 服务和实时通信
-- **数据库**：SQLAlchemy 支持 SQLite（默认）和 PostgreSQL
-- **热键监听**：pynput 实现全局键盘监听
-- **文件处理**：openpyxl 解析 Excel，BeautifulSoup 解析书签 HTML
-
-
-## 目录结构
-
-
-```bash
-NiceBoard/
-├── app.py              # 主程序入口（GUI逻辑）
-├── backend.py          # Flask后端服务
-├── models.py           # 数据库模型与操作
-├── hotkey_manager.py   # 热键管理模块
-├── settings_window.py  # 设置窗口逻辑
-├── resources_rc.py     # Qt资源文件（图标等）
-├── templates/          # Flask模板文件（Web界面）
-├── ui_clipboard_history.py # 编译后的UI文件
-├── config.yaml         # 配置文件（需手动创建）
-└── static/             # Web端静态资源
-```
-
-
-## 安装与运行
-### 环境依赖
-- Python 3.8+
-- PySide6 >= 6.8.3
-- Flask >= 2.3.2
-- pynput, pyexcel, beautifulsoup4, sqlalchemy
-
-### 安装命令
-```bash
-pip install -r requirements.txt
-```
-
-### 启动方式
-1. **GUI 程序**  
-   ```bash
-   python app.py
-   ```
-   - 首次运行会自动创建配置文件和数据库
-
-2. **Web 后端（多设备同步）**  
-   ```bash
-   python backend.py
-   ```
-   - 访问 `http://localhost:5000` 查看管理界面
-   - 手机扫码 `http://<主机IP>:5000/clipboard/listen` 二维码可发送内容
-
-
-## 使用说明
-1. **热键操作**  
-   - 按 `F9`（可自定义）唤起主窗口
-   - 在历史记录列表中按 `Delete` 键删除选中项
-   - 双击列表项自动复制内容并隐藏窗口
-
-2. **标签管理**  
-   - 右键点击记录 → "设置标签" 输入标签（多个用逗号分隔）
-   - 在搜索框输入 `#标签名` 快速过滤该标签的记录
-
-3. **多设备传输**  
-   - 确保电脑和手机在同一局域网
-   - 电脑端启动 Web 后端后，手机访问二维码页面发送文件/文本
-   - 接收的文件会保存在 `uploads/` 目录
-
-
-## 配置说明
-### 基础配置（config.yaml）
-```yaml
-hotkey: F9           # 全局热键
-max_history: 10000   # 最大记录数
-auto_start: true     # 开机自启
-enable_db: false     # 是否启用远程数据库（默认使用SQLite）
-```
-
-### 数据库配置（远程数据库需手动修改）
+## 配置示例
+### 本地 SQLite 配置（默认）
 ```python
-# models.py 中修改数据库连接
-if config_instance.get('enable_db', False):
-    db_url = "postgresql://user:password@host:port/db_name"
-else:
-    db_url = "sqlite:///clipboard_history.db"
+# utils/config_set.py
+{
+    "db_type": "sqlite",
+    "db_name": "clipboard_history.db",
+    "enable": false
+}
 ```
+
+### 远程 PostgreSQL 配置
+```python
+{
+    "db_type": "postgresql",
+    "host": "your-postgres-host",
+    "port": "5432",
+    "username": "postgres",
+    "password": "your-password",
+    "db_name": "niceboard_db",
+    "enable": true
+}
+```
+
+
+## 贡献与反馈
+- **代码贡献**：欢迎提交 PR，需遵循 PEP8 规范并添加单元测试
+- **问题反馈**：通过 GitHub Issues 提交 Bug，格式：`[BUG] 简短描述`
+- **联系方式**：邮件联系 <hongzhe2022@163.com>
 
 
 ---
 
-**好贴板，让效率触手可及，管理从未如此简单！**
+**文档更新时间**：2025年6月15日
