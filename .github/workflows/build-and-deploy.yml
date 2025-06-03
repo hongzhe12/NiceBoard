@@ -26,8 +26,8 @@ jobs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller pandas
-        pip install -r requirements.txt
+        pip install pyinstaller uv
+        uv pip install -r requirements.txt
 
     - name: Build executable
       shell: bash
@@ -38,6 +38,7 @@ jobs:
           --add-data "static;static" \
           --add-data "templates;templates" \
           --add-data "uploads;uploads" \
+          --add-data "src;src" \
           src/app.py
 
     - name: Verify build output
