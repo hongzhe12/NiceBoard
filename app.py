@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 import socket
 import sys
 
@@ -9,22 +8,22 @@ from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDeskto
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog
 
-
 from hotkey_manager import HotkeyManager
 from input_form_dialog import InputFormDialog
+from models import auto_clean_history
 from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
+from settings_config import config_instance  # 添加这行导入
 from settings_window import SettingsWindow
 from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 from utils import LogDisplayWindow
-from models import auto_clean_history
-from settings_config import config_instance  # 添加这行导入
+import resources_rc
 
 # 获取当前用户的应用数据目录
 log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
-import resources_rc
+
 from PySide6.QtCore import QThread, Signal
 
 from backend import socketio
@@ -54,7 +53,7 @@ class SearchWorker(QRunnable):
 
     def run(self):
         try:
-            results = filter_clipboard_history(self.search_text, use_regex=True,limit=20)
+            results = filter_clipboard_history(self.search_text, use_regex=True, limit=20)
             self.signals.result.emit(results)
         except Exception as e:
             logging.error(f"搜索出错: {e}")
@@ -97,7 +96,6 @@ class ClipboardHistoryApp(QMainWindow):
         # 初始化剪贴板监控
         self.clipboard = QApplication.clipboard()
         self.clipboard.dataChanged.connect(self._on_clipboard_change)
-
 
         # 使用配置实例获取设置
         hotkey = config_instance.get('hotkey', 'f9')
