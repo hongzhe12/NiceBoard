@@ -1,14 +1,13 @@
-import keyboard
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QIntValidator, Qt
-from PySide6.QtWidgets import QWidget, QMessageBox, QDialog, QVBoxLayout, QTextEdit, QPushButton, QApplication
+from PySide6.QtGui import QIntValidator
+from PySide6.QtWidgets import QWidget, QMessageBox, QDialog, QApplication
 import keyboard
 
-from auto_start import enable_auto_start, disable_auto_start
-from input_form_dialog import InputFormDialog
+from utils.auto_start import enable_auto_start, disable_auto_start
+from utils.input_form_dialog import InputFormDialog
 from models import get_db_path
-from settings_config import config_instance
-from ui_settings_window import Ui_SettingsForm
+from utils.settings_config import config_instance
+from ui.ui_settings_window import Ui_SettingsForm
 
 
 class SettingsWindow(QWidget):

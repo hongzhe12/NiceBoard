@@ -9,9 +9,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from utils import load_db_config
-
 # 获取数据库配置
+from utils.log_display import load_db_config
+
 db_config = load_db_config()
 # 使用 get() 方法安全获取 'enable' 键的值，默认值为 False
 if db_config.get('enable', False):

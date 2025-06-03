@@ -8,26 +8,26 @@ from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDeskto
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog
 
-from hotkey_manager import HotkeyManager
-from input_form_dialog import InputFormDialog
+from utils.hotkey_manager import HotkeyManager
+from utils.input_form_dialog import InputFormDialog
 from models import auto_clean_history
 from models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
-from settings_config import config_instance  # 添加这行导入
+from utils.settings_config import config_instance  # 添加这行导入
 from settings_window import SettingsWindow
-from ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
-from utils import LogDisplayWindow
-import resources_rc
-
+from ui.ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
+from resources import resources_rc # 加载资源文件
 # 获取当前用户的应用数据目录
+from utils.log_display import LogDisplayWindow
+
 log_dir = os.path.join(os.getenv('APPDATA'), 'haotieban')
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, 'app.log')
 
 from PySide6.QtCore import QThread, Signal
 
-from backend import socketio
-from backend import app as flask_app
+from backen.backend import socketio
+from backen.backend import app as flask_app
 from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 
 # 配置日志记录

@@ -1,3 +1,4 @@
+import base64
 import io
 import os
 from datetime import datetime
@@ -5,31 +6,36 @@ from datetime import datetime
 import pandas as pd
 import qrcode
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, request
 from flask import redirect, url_for, flash
-from flask import request  # 确保导入了 request
 from flask import send_file
+from flask import send_from_directory
+from flask_socketio import SocketIO
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
-from models import ClipboardItem, AppSettings, engine, session_scope
-import base64
 
-import os
+from src.models import ClipboardItem, engine, session_scope
+
 os.environ['FLASK_SOCKETIO_ASYNC_MODE'] = 'threading'  # 强制锁定异步模式
-os.environ['EVENTLET_MONKEY_PATCH'] = 'false'         # 禁用 eventlet 猴子补丁
+os.environ['EVENTLET_MONKEY_PATCH'] = 'false'  # 禁用 eventlet 猴子补丁
 
+# 获取当前文件所在目录
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# 指定模板文件夹为项目根目录下的templates文件夹
+template_dir = os.path.join(basedir, '..', 'templates')
+# 指定静态文件夹路径（相对于项目根目录）和URL前缀
+static_dir = os.path.join(basedir, '..', 'static')
 # 初始化Flask应用
-app = Flask(__name__)
-app.secret_key = "supersecretkey"  # 设置一个密钥用于flash消息
-socketio = SocketIO(app, async_mode='threading',engineio_logger=True)  # 使用 threading 模式
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+app.secret_key = "ON6xJyM8tnU5a0bcpQkQ"  # 设置一个密钥用于flash消息
+
+socketio = SocketIO(app, async_mode='threading', engineio_logger=True)  # 使用 threading 模式
 # socketio = SocketIO(app)  # 使用 threading 模式
 
 # 创建数据库会话
 Session = sessionmaker(bind=engine)
 session = Session()
-
 
 # ------------------------------
 # ClipboardItem 功能
@@ -37,7 +43,6 @@ session = Session()
 # 配置文件上传的路径
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
-
 
 
 @app.route('/')
@@ -49,6 +54,7 @@ def index():
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+
 @app.route('/clipboard/listen')
 def clipboard_listen():
     # 二维码内容为监听地址（PC端访问）
@@ -59,14 +65,15 @@ def clipboard_listen():
     qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
     qr_data_uri = f"data:image/png;base64,{qr_base64}"
 
-    return render_template('clipboard_listen.html',qr_data_uri=qr_data_uri)
+    return render_template('clipboard_listen.html', qr_data_uri=qr_data_uri)
 
 
 def is_mobile():
     user_agent = request.user_agent.string.lower()
     mobile_keywords = ['iphone', 'android', 'webos', 'blackberry',
-                      'windows phone', 'mobile', 'ipod', 'ipad']
+                       'windows phone', 'mobile', 'ipod', 'ipad']
     return any(keyword in user_agent for keyword in mobile_keywords)
+
 
 @app.route('/clipboard/send', methods=['GET', 'POST'])
 def clipboard_send():
@@ -86,13 +93,13 @@ def clipboard_send():
             })
         return '已发送'
 
-
     return render_template('clipboard_send.html')
 
 
 # 检查文件扩展名是否允许
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route('/bookmark/import', methods=['GET', 'POST'])
 def bookmark_import():
@@ -167,8 +174,8 @@ def clipboard_import():
 
                 # 假设Excel中有 'content' 和 'tags' 两列
                 for _, row in df.iterrows():
-                    content = row['content']
-                    tags = row['tags'] if 'tags' in row else None
+                    content = row['内容']
+                    tags = row['标签'] if '标签' in row else None
 
                     # 将数据保存到数据库
                     new_item = ClipboardItem(content=content, tags=tags, timestamp=datetime.now())
@@ -359,85 +366,6 @@ def clipboard_search():
     )
 
 
-# ------------------------------
-# AppSettings 功能
-# ------------------------------
-
-@app.route('/settings/list', methods=['GET'])
-def settings_list():
-    """显示所有 AppSettings 的列表"""
-    settings = session.query(AppSettings).all()
-    return render_template('app_settings_list.html', settings=settings)
-
-
-@app.route('/settings/create', methods=['GET', 'POST'])
-def settings_create():
-    """创建新的 AppSettings"""
-    if request.method == 'POST':
-        key = request.form.get("key", "").strip()
-        value = request.form.get("value", "").strip()
-
-        if not key or not value:
-            flash("键和值都不能为空")
-            return redirect(url_for('settings_create'))
-
-        new_setting = AppSettings(key=key, value=value)
-        session.add(new_setting)
-        session.commit()
-        flash("创建成功")
-        return redirect(url_for('settings_list'))
-
-    return render_template('app_settings_create.html')
-
-
-@app.route('/settings/detail/<int:id>', methods=['GET'])
-def settings_detail(id):
-    """查看指定 AppSettings 的详情"""
-    setting = session.query(AppSettings).filter_by(id=id).first()
-    if not setting:
-        flash("记录不存在")
-        return redirect(url_for('settings_list'))
-    return render_template('app_settings_detail.html', setting=setting)
-
-
-@app.route('/settings/update/<int:id>', methods=['GET', 'POST'])
-def settings_update(id):
-    """更新指定 AppSettings"""
-    setting = session.query(AppSettings).filter_by(id=id).first()
-    if not setting:
-        flash("记录不存在")
-        return redirect(url_for('settings_list'))
-
-    if request.method == 'POST':
-        key = request.form.get("key", "").strip()
-        value = request.form.get("value", "").strip()
-
-        if not key or not value:
-            flash("键和值都不能为空")
-            return redirect(url_for('settings_update', id=id))
-
-        setting.key = key
-        setting.value = value
-        session.commit()
-        flash("更新成功")
-        return redirect(url_for('settings_list'))
-
-    return render_template('app_settings_update.html', setting=setting)
-
-
-@app.route('/settings/delete/<int:id>', methods=['POST'])
-def settings_delete(id):
-    """删除指定 AppSettings"""
-    setting = session.query(AppSettings).filter_by(id=id).first()
-    if not setting:
-        flash("记录不存在")
-        return redirect(url_for('settings_list'))
-
-    session.delete(setting)
-    session.commit()
-    flash("删除成功")
-    return redirect(url_for('settings_list'))
-
 @app.route('/clipboard/cleanup')
 def clipboard_cleanup():
     """删除所有没有标签的剪贴板记录"""
@@ -486,6 +414,7 @@ def export_selected():
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
+
 @app.teardown_request
 def shutdown_session(exception=None):
     """确保请求结束后关闭会话"""
@@ -493,9 +422,7 @@ def shutdown_session(exception=None):
         app.db_session.remove()
 
 
-
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000)
-
 
     # app.run(debug=True)

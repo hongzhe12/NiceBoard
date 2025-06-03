@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QApplication, QPushButton, QVBoxLayout, QWidget, \
 import json
 from pathlib import Path
 
+
 def show_message(title, message, is_error=False):
     """显示消息对话框"""
     from PySide6.QtWidgets import QMessageBox
@@ -19,6 +20,7 @@ def show_message(title, message, is_error=False):
         msg_box.setIcon(QMessageBox.Information)
 
     msg_box.exec()
+
 
 class LogDisplayWindow(QWidget):
     def __init__(self, log_content):
@@ -57,8 +59,6 @@ class LogDisplayWindow(QWidget):
         window_geometry.moveCenter(center_point)
         # 移动窗口到计算好的位置
         self.move(window_geometry.topLeft())
-
-
 
 
 def load_db_config():
@@ -114,4 +114,3 @@ def save_db_config(config):
 
     except Exception as e:
         show_message("错误", f"保存配置时出错: {str(e)}", is_error=True)
-
