@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -120,6 +122,28 @@ class Config:
 
     def __repr__(self) -> str:
         return f"Config(filepath={str(self._path)!r}, data={self._data})"
+
+    def import_config(self,base64_str) -> bool:
+        """导入配置"""
+        # 解码Base64字符串
+        base64_str = base64.b64decode(base64_str).decode('utf-8')
+
+        self.update(
+            json.loads(base64_str)
+        )
+        self.save()
+
+        return True
+
+    def export_config(self) -> str:
+        """导出配置"""
+        # 将配置转换为Base64字符串
+        # 将字典转换为JSON字符串，再编码为字节
+        json_str = json.dumps(self.to_dict())
+        byte_data = json_str.encode('utf-8')
+        # 将字节数据进行Base64编码，然后解码为字符串
+        base64_str = base64.b64encode(byte_data).decode('utf-8')
+        return base64_str
 
 
 appdata_dir = Path(os.getenv('APPDATA')) / '好贴板'
