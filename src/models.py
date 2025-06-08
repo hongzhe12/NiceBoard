@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Index, QueuePool
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Index, QueuePool,Text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -62,7 +62,7 @@ class ClipboardItem(Base):
     """剪贴板历史记录模型"""
     __tablename__ = 'clipboard_history'
     id = Column(Integer, primary_key=True)
-    content = Column(String(500000))
+    content = Column(Text)
     timestamp = Column(DateTime, default=datetime.now)
     tags = Column(String(200), default="")
 

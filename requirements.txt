@@ -24,3 +24,4 @@ wheel>=0.41.2
 XlsxWriter>=3.2.3
 PyYAML>=6.0.2
 bs4>=0.0.2
+pymysql>=1.1.1
