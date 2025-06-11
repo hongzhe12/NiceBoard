@@ -31,7 +31,7 @@ from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 
 
 
-degree = 10
+degree = 1
 
 
 # 搜索工作线程类
