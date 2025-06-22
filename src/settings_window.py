@@ -1,3 +1,5 @@
+import sys
+
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QWidget, QMessageBox, QDialog, QApplication
@@ -40,6 +42,27 @@ class SettingsWindow(QWidget):
         self.ui.import_btn.clicked.connect(self.import_btn_clicked)
         # 导出按钮
         self.ui.export_btn.clicked.connect(self.export_btn_clicked)
+
+        # 授权按钮
+        self.ui.shouquan.clicked.connect(self.shouquan_clicked)
+
+    def shouquan_clicked(self):
+        access_token = config_instance.get("access_token")
+        form_structure = [
+            {"label": "请输入授权码(access_token)", "type": "text", "default": access_token},
+        ]
+
+        dialog = InputFormDialog(form_structure, self)
+        if dialog.exec() == QDialog.Accepted:
+            values = dialog.get_input_values()
+            access_token = values[0]
+            config_instance.update(
+                {
+                    "access_token": access_token
+                },
+                True
+            )
+
 
     def import_btn_clicked(self):
         form_structure = [
@@ -239,3 +262,10 @@ class SettingsWindow(QWidget):
         if self.isVisible():
             self.hide()
             event.ignore()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = SettingsWindow()
+    window.show()
+    sys.exit(app.exec())

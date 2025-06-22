@@ -1,4 +1,3 @@
-
 import os
 import socket
 import sys
@@ -10,6 +9,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu,
 
 from log.log import log_file
 from utils.config_set import config_instance
+from utils.code_gist import api as code_gist_api
 from utils.hotkey_manager import HotkeyManager
 from utils.input_form_dialog import InputFormDialog
 from src.models import auto_clean_history
@@ -18,7 +18,7 @@ from src.models import get_clipboard_history, add_clipboard_item, delete_clipboa
 
 from src.settings_window import SettingsWindow
 from ui.ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
-from resources import resources_rc # 加载资源文件
+from resources import resources_rc  # 加载资源文件
 # 获取当前用户的应用数据目录
 from utils.log_display import LogDisplayWindow
 from log.log import logging as _log
@@ -289,7 +289,8 @@ class ClipboardHistoryApp(QMainWindow):
             "设置标签": lambda: self.set_label(current_text),
             "复制内容": lambda: self.clipboard.setText(current_text),
             "删除": self.delete_selected_item,
-            "清空历史": self.clear_all_history
+            # "清空历史": self.clear_all_history,
+            "存储为代码片段": lambda: self.create_gist_windows(current_text),
 
         }
 
@@ -298,6 +299,39 @@ class ClipboardHistoryApp(QMainWindow):
             action.triggered.connect(callback)
 
         menu.exec(self.ui.history_list.mapToGlobal(pos))
+
+    def create_gist_windows(self, content):
+        tag = find_tags_by_content(content)
+        if tag and tag.strip() != '' and 'gitee-' in tag:
+            code_id = tag.split('gitee-')[-1]
+            res = code_gist_api.get_single_gist(code_id)
+            if res and 'id' in res:
+                if res['id'] == code_id:
+                    QMessageBox.information(self, "成功", "无须重复存储！")
+            return
+
+        form_structure = [
+            {"label": "标题", "type": "text", "default": ""},
+            {"label": "类型", "type": "combo", "items": [".py", ".c", ".cpp", ".java", ".cs", ".md"]}
+        ]
+
+        dialog = InputFormDialog(form_structure, self)
+        if dialog.exec() == QDialog.Accepted:
+            values = dialog.get_input_values()
+            description = values[0]
+            file_type = values[1]
+
+            res = code_gist_api.create_gist(
+                files={f"main{file_type}": {"content": content}},
+                description=description
+            )
+            if res and 'id' in res:
+                # 同时设置标签
+                update_tags_for_clipboard_item(content, f"gitee-{res['id']}")
+                QMessageBox.information(self, "成功", "已存入代码块！")
+                return
+
+        QMessageBox.information(self, "失败", "存储失败！")
 
     # 设置标签方法
     def set_label(self, text):
