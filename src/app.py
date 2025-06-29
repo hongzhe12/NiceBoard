@@ -46,7 +46,7 @@ class SearchWorker(QRunnable):
 
     def run(self):
         try:
-            results = filter_clipboard_history(self.search_text, use_regex=True, limit=20)
+            results = filter_clipboard_history(self.search_text, use_regex=False, limit=20)
             self.signals.result.emit(results)
         except Exception as e:
             _log.error(f"搜索出错: {e}")
