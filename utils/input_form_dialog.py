@@ -1,7 +1,8 @@
 import sys
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel,
-                              QLineEdit, QPushButton, QDialog, QDateEdit,
-                              QSpinBox, QSpacerItem, QSizePolicy, QComboBox)
+                               QLineEdit, QPushButton, QDialog, QDateEdit,
+                               QSpinBox, QSpacerItem, QSizePolicy, QComboBox,
+                               QTextEdit)
 from PySide6.QtGui import QFont
 from PySide6.QtCore import QDate
 
@@ -61,6 +62,14 @@ class InputFormDialog(QDialog):
                 if "default" in field and field["default"] in field["items"]:
                     index = field["items"].index(field["default"])
                     input_widget.setCurrentIndex(index)
+            elif field["type"] == "textarea":  # 新增长文本输入框
+                input_widget = QTextEdit()
+                if "default" in field:
+                    input_widget.setText(field["default"])
+                # 设置长文本输入框的最小高度
+                input_widget.setMinimumHeight(100)
+                # 可选：设置最大高度
+                input_widget.setMaximumHeight(200)
             else:
                 input_widget = QLineEdit()  # 默认使用文本输入框
 
@@ -85,11 +94,19 @@ class InputFormDialog(QDialog):
         self.setLayout(layout)
 
     def adjust_window_size(self):
-        base_width = 300
+        base_width = 400  # 增加宽度以适应长文本输入框
         base_height = 100  # 基础高度，包含按钮和一些边距
         field_height = 50  # 每个字段的大致高度（标签 + 输入框）
         spacer_height = 10  # 间隔的高度
-        total_height = base_height + len(self.form_structure) * (field_height + spacer_height)
+
+        # 计算总高度，为长文本输入框分配更多空间
+        total_height = base_height
+        for field in self.form_structure:
+            if field["type"] == "textarea":
+                total_height += 120  # 长文本输入框的高度
+            else:
+                total_height += field_height + spacer_height
+
         self.setFixedSize(base_width, total_height)
 
     def get_input_values(self):
@@ -104,7 +121,10 @@ class InputFormDialog(QDialog):
                 values.append(widget.value())
             elif field_type == "combo":
                 values.append(widget.currentText())
+            elif field_type == "textarea":  # 处理长文本输入
+                values.append(widget.toPlainText())
         return values
+
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -133,13 +153,16 @@ class MainWindow(QWidget):
             {"label": "邮箱", "type": "text", "default": "example@example.com"},
             {"label": "出生日期", "type": "date", "default": "2000-01-01"},
             {"label": "性别", "type": "combo", "items": ["男", "女", "其他"], "default": "男"},
-            {"label": "职业", "type": "combo", "items": ["学生", "教师", "工程师", "医生", "其他"]}
+            {"label": "职业", "type": "combo", "items": ["学生", "教师", "工程师", "医生", "其他"]},
+            {"label": "个人简介", "type": "textarea", "default": "请输入您的个人简介..."},  # 新增长文本字段
+            {"label": "备注", "type": "textarea"}  # 另一个长文本字段示例
         ]
 
         dialog = InputFormDialog(form_structure, self)
         if dialog.exec() == QDialog.Accepted:
             values = dialog.get_input_values()
             print(values)  # 打印获取的值
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

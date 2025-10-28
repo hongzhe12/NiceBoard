@@ -5,14 +5,14 @@ import sys
 from PySide6.QtCore import Qt, QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
-    QDialog
+    QDialog, QLayoutItem
 
 from log.log import log_file
 from utils.config_set import config_instance
 from utils.code_gist import api as code_gist_api
 from utils.hotkey_manager import HotkeyManager
 from utils.input_form_dialog import InputFormDialog
-from src.models import auto_clean_history
+from src.models import auto_clean_history, update_clipboard_item_content
 from src.models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
 
@@ -165,7 +165,7 @@ class ClipboardHistoryApp(QMainWindow):
 
         backend_action = tray_menu.addAction("打开后台管理")
         # 连接打开浏览器的信号槽
-        backend_action.triggered.connect(self.open_website)
+        # backend_action.triggered.connect(self.open_website)
 
         logs_action = tray_menu.addAction("查看日志")
         # 连接打开浏览器的信号槽
@@ -289,6 +289,7 @@ class ClipboardHistoryApp(QMainWindow):
             "设置标签": lambda: self.set_label(current_text),
             "复制内容": lambda: self.clipboard.setText(current_text),
             "删除": self.delete_selected_item,
+            "编辑":lambda: self.set_content(current_text,self.ui.history_list.itemAt(pos)),
             # "清空历史": self.clear_all_history,
             "存储为代码片段": lambda: self.create_gist_windows(current_text),
 
@@ -336,7 +337,6 @@ class ClipboardHistoryApp(QMainWindow):
     # 设置标签方法
     def set_label(self, text):
         """设置标签"""
-
         tag = find_tags_by_content(text)
         # 自定义数据结构，用于描述表单字段，添加了默认值
         form_structure = [
@@ -348,6 +348,24 @@ class ClipboardHistoryApp(QMainWindow):
             values = dialog.get_input_values()
             label = values[0]
             update_tags_for_clipboard_item(text, label)
+
+    def set_content(self, text,item:QLayoutItem):
+        """编辑内容"""
+        # 自定义数据结构，用于描述表单字段，添加了默认值
+        form_structure = [
+            {"label": "编辑内容", "type": "textarea","default": text}  # 另一个长文本字段示例
+        ]
+
+        dialog = InputFormDialog(form_structure, self)
+        if dialog.exec() == QDialog.Accepted:
+            values = dialog.get_input_values()
+            content = values[0]
+            # 更新这条记录
+            is_ok = update_clipboard_item_content(text, content)
+            # 更新当前的文本
+            item.setText(content)
+
+
 
     def delete_selected_item(self):
         """安全删除当前选中项"""

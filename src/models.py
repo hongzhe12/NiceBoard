@@ -400,6 +400,34 @@ def filter_clipboard_history(text, limit=50, use_regex=False):
     finally:
         session.close()
 
+def update_clipboard_item_content(old_text, new_text):
+    """
+    更新剪贴板项的内容。
+    :param old_text: 原始内容
+    :param new_text: 新的内容
+    :return: 更新成功返回True，失败返回False
+    """
+    session = Session()
+    try:
+        # 查找原始内容对应的记录
+        item = session.query(ClipboardItem).filter(ClipboardItem.content == old_text).first()
+        if item:
+            # 更新内容
+            item.content = new_text
+            # 更新时间戳为当前时间
+            item.timestamp = datetime.now()
+            session.commit()
+            _log.info(f"成功更新剪贴板项内容: '{old_text}' -> '{new_text}'")
+            return True
+        else:
+            _log.warning(f"未找到内容为 '{old_text}' 的剪贴板项")
+            return False
+    except Exception as e:
+        session.rollback()
+        _log.error(f"更新剪贴板项内容失败: {e}")
+        return False
+    finally:
+        session.close()
 
 # 添加会话管理工具
 @contextmanager
