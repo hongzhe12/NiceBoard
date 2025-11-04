@@ -1,35 +1,32 @@
-import os
 import socket
 import sys
+from pathlib import Path
 
+from resources import resources_rc  # 加载资源文件
+from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
 from PySide6.QtCore import Qt, QEvent, QUrl
 from PySide6.QtGui import QCursor, QPainterPath, QRegion, QIcon, QColor, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu, QStyle, QMessageBox, QListWidgetItem, \
     QDialog, QLayoutItem
 
+from backen.backend import app as flask_app
+from backen.backend import socketio
 from log.log import log_file
-from utils.config_set import config_instance
-from utils.code_gist import api as code_gist_api
-from utils.hotkey_manager import HotkeyManager
-from utils.input_form_dialog import InputFormDialog
+from log.log import logging as _log
 from src.models import auto_clean_history, update_clipboard_item_content
 from src.models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
-
 from src.settings_window import SettingsWindow
 from ui.ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
-from resources import resources_rc  # 加载资源文件
-# 获取当前用户的应用数据目录
+from utils.code_gist import api as code_gist_api
+from utils.config_set import config_instance
+from utils.hotkey_manager import HotkeyManager
+from utils.input_form_dialog import InputFormDialog
 from utils.log_display import LogDisplayWindow
-from log.log import logging as _log
 
-from PySide6.QtCore import QThread, Signal
-
-from backen.backend import socketio
-from backen.backend import app as flask_app
-from PySide6.QtCore import QTimer, QRunnable, QThreadPool, QObject
-
-
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
 
 degree = 1
 
