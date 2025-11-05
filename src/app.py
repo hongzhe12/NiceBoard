@@ -61,7 +61,7 @@ class BackendThread(QThread):
             socketio.run(
                 flask_app,
                 host='0.0.0.0',
-                port=5000,
+                port=5222,
                 allow_unsafe_werkzeug=True,
                 debug=False  # 生产环境关闭调试
             )
@@ -162,7 +162,7 @@ class ClipboardHistoryApp(QMainWindow):
 
         backend_action = tray_menu.addAction("打开后台管理")
         # 连接打开浏览器的信号槽
-        # backend_action.triggered.connect(self.open_website)
+        backend_action.triggered.connect(self.open_website)
 
         logs_action = tray_menu.addAction("查看日志")
         # 连接打开浏览器的信号槽
@@ -201,7 +201,7 @@ class ClipboardHistoryApp(QMainWindow):
         ipv4_address = socket.gethostbyname(hostname)
 
         # 指定要打开的网站 URL
-        url = QUrl(f'http://{ipv4_address}:5000')
+        url = QUrl(f'http://{ipv4_address}:5222')
         # 使用 QDesktopServices 打开浏览器
         QDesktopServices.openUrl(url)
 
