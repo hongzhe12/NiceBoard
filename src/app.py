@@ -1,6 +1,9 @@
-import socket
 import sys
 from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
+import socket
 
 from resources import resources_rc  # 加载资源文件
 from PySide6.QtCore import QThread, Signal
@@ -24,9 +27,6 @@ from utils.config_set import config_instance
 from utils.hotkey_manager import HotkeyManager
 from utils.input_form_dialog import InputFormDialog
 from utils.log_display import LogDisplayWindow
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR))
 
 degree = 1
 
@@ -286,7 +286,7 @@ class ClipboardHistoryApp(QMainWindow):
             "设置标签": lambda: self.set_label(current_text),
             "复制内容": lambda: self.clipboard.setText(current_text),
             "删除": self.delete_selected_item,
-            "编辑":lambda: self.set_content(current_text,self.ui.history_list.itemAt(pos)),
+            "编辑": lambda: self.set_content(current_text, self.ui.history_list.itemAt(pos)),
             # "清空历史": self.clear_all_history,
             "存储为代码片段": lambda: self.create_gist_windows(current_text),
 
@@ -346,11 +346,11 @@ class ClipboardHistoryApp(QMainWindow):
             label = values[0]
             update_tags_for_clipboard_item(text, label)
 
-    def set_content(self, text,item:QLayoutItem):
+    def set_content(self, text, item: QLayoutItem):
         """编辑内容"""
         # 自定义数据结构，用于描述表单字段，添加了默认值
         form_structure = [
-            {"label": "编辑内容", "type": "textarea","default": text}  # 另一个长文本字段示例
+            {"label": "编辑内容", "type": "textarea", "default": text}  # 另一个长文本字段示例
         ]
 
         dialog = InputFormDialog(form_structure, self)
@@ -361,8 +361,6 @@ class ClipboardHistoryApp(QMainWindow):
             is_ok = update_clipboard_item_content(text, content)
             # 更新当前的文本
             item.setText(content)
-
-
 
     def delete_selected_item(self):
         """安全删除当前选中项"""
