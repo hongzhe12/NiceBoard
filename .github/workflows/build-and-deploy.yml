@@ -2,9 +2,9 @@ name: Build and Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ dev ]
   pull_request:
-    branches: [ master ]
+    branches: [ dev ]
 
 jobs:
   build-and-release:
@@ -64,7 +64,7 @@ jobs:
 
     - name: Create Release
       id: create-release
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/dev'
       uses: softprops/action-gh-release@v1
       with:
         files: |
