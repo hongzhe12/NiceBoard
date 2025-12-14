@@ -28,6 +28,7 @@ from utils.hotkey_manager import HotkeyManager
 from utils.input_form_dialog import InputFormDialog
 from utils.log_display import LogDisplayWindow
 
+from screenshot_preview_window import MyMainWindow
 degree = 1
 
 
@@ -76,7 +77,9 @@ class ClipboardHistoryApp(QMainWindow):
         self.ui.setupUi(self)
 
         self.settings_window = None  # 添加设置窗口引用
-        self.tray_icon = None  # 托盘图标
+        # 创建托盘图标
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(self.windowIcon())
         # 初始化设置
         # self.setWindowTitle("剪贴板历史记录")
 
@@ -139,6 +142,20 @@ class ClipboardHistoryApp(QMainWindow):
         # 日志窗口
         self.log_window = None
 
+    def start_screenshot(self):
+        """启动截图功能"""
+        try:
+            # 隐藏主窗口
+            self.hide()
+
+            # 创建截图窗口实例
+            self.screenshot_window = MyMainWindow(start_hidden=True)
+            self.screenshot_window.start_screenshot()
+
+        except Exception as e:
+            _log.error(f"启动截图功能失败: {e}")
+            self.show_error("截图功能错误", f"无法启动截图功能: {e}")
+
     def setup_system_tray(self):
         """创建系统托盘图标"""
         self.tray_icon = QSystemTrayIcon(self)
@@ -159,6 +176,10 @@ class ClipboardHistoryApp(QMainWindow):
 
         history_action = tray_menu.addAction("查看剪贴板历史")
         history_action.triggered.connect(self.toggle_window)
+
+        # 添加截图选项
+        screenshot_action = tray_menu.addAction("截图")
+        screenshot_action.triggered.connect(self.start_screenshot)
 
         backend_action = tray_menu.addAction("打开后台管理")
         # 连接打开浏览器的信号槽
