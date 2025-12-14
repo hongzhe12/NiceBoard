@@ -1,55 +1,59 @@
 from PySide6.QtCore import QObject, Signal
-from pynput.keyboard import Key, KeyCode, Listener
+from pynput.keyboard import Key, Listener
+from log.log import logging as logger
 
+class GlobalHotkeyManager(QObject):
+    """全局热键管理器"""
 
-class HotkeyManager(QObject):
-    """单按键触发的全局热键管理类"""
-
-    hotkey_pressed = Signal()
-    esc_pressed = Signal()  # 新增：Esc键按下信号
+    # 定义不同的热键信号
+    f9_pressed = Signal()
+    f10_pressed = Signal()
+    esc_pressed = Signal()
 
     def __init__(self):
         super().__init__()
         self._listener = None
-        self._trigger_key = None
-        self._esc_enabled = True  # 是否启用Esc键功能
+        logger.info("GlobalHotkeyManager 初始化完成")
 
-    def start_listen(self, hotkey: str = 'f9',enable_esc: bool = True) -> None:
-        """启动热键监听"""
-        self.stop_listen()  # 确保先停止现有监听
-        self._esc_enabled = enable_esc
-
-        # 解析单按键
+    def start_listen(self) -> None:
+        """启动监听"""
+        logger.info("尝试启动热键监听...")
+        self.stop_listen()
         try:
-            self._trigger_key = getattr(Key, hotkey)
-        except AttributeError:
-            if len(hotkey) == 1:
-                self._trigger_key = KeyCode.from_char(hotkey)
-            else:
-                print(f"无效的热键: {hotkey}")
-                return
-
-        # 启动监听器
-        self._listener = Listener(
-            on_press=self._on_press
-        )
-        self._listener.start()
+            self._listener = Listener(on_press=self._on_press)
+            self._listener.start()
+            logger.info("热键监听已启动成功")
+        except Exception as e:
+            logger.info(f"热键监听启动失败: {e}")
 
     def stop_listen(self) -> None:
-        """停止热键监听"""
+        """停止监听"""
         if self._listener:
+            logger.info("停止热键监听")
             self._listener.stop()
             self._listener = None
 
     def _on_press(self, key) -> None:
-        """处理按键按下事件"""
-        if key == self._trigger_key:
-            self.hotkey_pressed.emit()
+        """按键处理"""
+        logger.info(f"检测到按键: {key}")
 
-        # Esc键检测（固定功能）
-        if self._esc_enabled and key == Key.esc:
-            self.esc_pressed.emit()
+        try:
+            if key == Key.f9:
+                logger.info("F9 被按下，发射信号")
+                self.f9_pressed.emit()
+            elif key == Key.f10:
+                logger.info("F1 被按下，发射信号")
+                self.f10_pressed.emit()
+            elif key == Key.esc:
+                logger.info("ESC 被按下，发射信号")
+                self.esc_pressed.emit()
+        except Exception as e:
+            logger.info(f"处理按键时出错: {e}")
 
     def __del__(self):
-        """析构时自动清理"""
+        logger.info("GlobalHotkeyManager 销毁")
         self.stop_listen()
+
+
+# 创建全局热键管理器
+global_hotkey_manager = GlobalHotkeyManager()

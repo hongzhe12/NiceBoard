@@ -1,6 +1,9 @@
 import sys
 from pathlib import Path
 
+from log.log import logger, log_file
+from utils.hotkey_manager import global_hotkey_manager
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 import socket
@@ -15,8 +18,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon, QMenu,
 
 from backen.backend import app as flask_app
 from backen.backend import socketio
-from log.log import log_file
-from log.log import logging as _log
+
 from src.models import auto_clean_history, update_clipboard_item_content
 from src.models import get_clipboard_history, add_clipboard_item, delete_clipboard_item, clear_all_clipboard_history, \
     filter_clipboard_history, update_tags_for_clipboard_item, find_tags_by_content
@@ -24,11 +26,10 @@ from src.settings_window import SettingsWindow
 from ui.ui_clipboard_history import Ui_SimpleClipboardHistory  # 编译后的UI
 from utils.code_gist import api as code_gist_api
 from utils.config_set import config_instance
-from utils.hotkey_manager import HotkeyManager
+
 from utils.input_form_dialog import InputFormDialog
 from utils.log_display import LogDisplayWindow
 
-from screenshot_preview_window import MyMainWindow
 degree = 1
 
 
@@ -47,7 +48,7 @@ class SearchWorker(QRunnable):
             results = filter_clipboard_history(self.search_text, use_regex=False, limit=20)
             self.signals.result.emit(results)
         except Exception as e:
-            _log.error(f"搜索出错: {e}")
+            logger.error(f"搜索出错: {e}")
             self.signals.result.emit([])
 
 
@@ -67,7 +68,7 @@ class BackendThread(QThread):
                 debug=False  # 生产环境关闭调试
             )
         except Exception as e:
-            _log.error(f"后端启动失败: {e}")
+            logger.error(f"后端启动失败: {e}")
 
 
 class ClipboardHistoryApp(QMainWindow):
@@ -80,6 +81,7 @@ class ClipboardHistoryApp(QMainWindow):
         # 创建托盘图标
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(self.windowIcon())
+
         # 初始化设置
         # self.setWindowTitle("剪贴板历史记录")
 
@@ -90,21 +92,23 @@ class ClipboardHistoryApp(QMainWindow):
         self.clipboard = QApplication.clipboard()
         self.clipboard.dataChanged.connect(self._on_clipboard_change)
 
-        # 使用配置实例获取设置
-        hotkey = config_instance.get('hotkey', 'f9')
-        self.__hotkey = hotkey
+        # # 使用配置实例获取设置
+        # hotkey = config_instance.get('hotkey', 'f9')
+        # self.__hotkey = hotkey
+        #
+        # # 转换小写
+        # hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
+        # # 预处理
+        # hotkey = hotkey.replace('alt', '<alt>')
+        # hotkey = hotkey.replace('ctrl', '<ctrl>')
 
-        # 转换小写
-        hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
-        # 预处理
-        hotkey = hotkey.replace('alt', '<alt>')
-        hotkey = hotkey.replace('ctrl', '<ctrl>')
+        global_hotkey_manager.f9_pressed.connect(self.toggle_window) # 注册F9 唤出剪贴板
+        global_hotkey_manager.f10_pressed.connect(self.start_screenshot)  # 注册F1 唤出截图
+        global_hotkey_manager.esc_pressed.connect(self.hide)
 
-        # 热键设置
-        self.hotkey_manager = HotkeyManager()
-        self.hotkey_manager.hotkey_pressed.connect(self.toggle_window)
-        self.hotkey_manager.esc_pressed.connect(self.hide)
-        self.hotkey_manager.start_listen(hotkey=hotkey)
+
+        # 截图窗口实例（延迟创建）
+        self.screenshot_window = None
 
         # 加载历史记录
         self._load_history()
@@ -149,11 +153,12 @@ class ClipboardHistoryApp(QMainWindow):
             self.hide()
 
             # 创建截图窗口实例
+            from screenshot_preview_window import MyMainWindow
             self.screenshot_window = MyMainWindow(start_hidden=True)
             self.screenshot_window.start_screenshot()
 
         except Exception as e:
-            _log.error(f"启动截图功能失败: {e}")
+            logger.error(f"启动截图功能失败: {e}")
             self.show_error("截图功能错误", f"无法启动截图功能: {e}")
 
     def setup_system_tray(self):
@@ -199,6 +204,7 @@ class ClipboardHistoryApp(QMainWindow):
 
     def open_log_file(self):
         """打开日志文件"""
+        # 获取项目根目录
         try:
             with open(log_file, 'r', encoding='utf-8') as file:
                 log_content = file.read()
@@ -428,7 +434,7 @@ class ClipboardHistoryApp(QMainWindow):
 
         self.tray_icon.showMessage(
             "好贴板已启动",
-            f"按 {str(self.__hotkey)} 唤出面板",
+            f"按F9唤出面板",
             QSystemTrayIcon.Information,
             1000
         )
@@ -559,7 +565,7 @@ class ClipboardHistoryApp(QMainWindow):
             QTimer.singleShot(100, lambda: self._paste_to_active_window(selected_text))
 
         except Exception as e:
-            _log.error(f"复制粘贴失败: {e}")
+            logger.error(f"复制粘贴失败: {e}")
 
     def _paste_to_active_window(self, text):
         """实际执行粘贴操作的辅助方法"""
@@ -580,7 +586,7 @@ class ClipboardHistoryApp(QMainWindow):
             QTimer.singleShot(200, lambda: self.clipboard.setText(original_clipboard))
 
         except Exception as e:
-            _log.error(f"自动粘贴失败: {e}")
+            logger.error(f"自动粘贴失败: {e}")
             # 如果失败，至少确保文本已在剪贴板中
             self.clipboard.setText(text)
 
@@ -597,14 +603,26 @@ class ClipboardHistoryApp(QMainWindow):
 
     def toggle_window(self):
         """切换窗口显示状态"""
-        _log.info(f"toggle_window 方法被调用")
+        logger.info(f"toggle_window 方法被调用")
         if self.isVisible():
             self.hide()
         else:
             self._show_at_cursor()
 
+    def toggle_window(self):
+        """切换窗口显示状态"""
+        print("toggle_window 方法被调用 (来自F9热键)")
+        logger.info(f"toggle_window 方法被调用")
+        if self.isVisible():
+            print("窗口当前可见，将隐藏")
+            self.hide()
+        else:
+            print("窗口当前隐藏，将显示")
+            self._show_at_cursor()
+
     def _show_at_cursor(self):
-        _log.info(f" _show_at_cursor 方法被调用")
+        print("_show_at_cursor 方法被调用")
+        logger.info(f" _show_at_cursor 方法被调用")
         # 设置窗口属性
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint |
@@ -617,7 +635,7 @@ class ClipboardHistoryApp(QMainWindow):
         x = min(max(cursor_pos.x(), screen.x()), screen.right() - self.width())
         y = min(max(cursor_pos.y(), screen.y()), screen.bottom() - self.height())
 
-        _log.info(f" 窗口将移动到位置: ({x}, {y})")
+        logger.info(f" 窗口将移动到位置: ({x}, {y})")
         self.move(int(x), int(y))
         self.show()
 
@@ -638,6 +656,7 @@ class ClipboardHistoryApp(QMainWindow):
             super().closeEvent(event)
 
 
+# 在文件末尾修改主程序入口
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
@@ -653,5 +672,13 @@ if __name__ == "__main__":
     """)
     app.setApplicationName("好贴板")  # 设置应用程序名称
 
+    # 启动全局热键监听（必须在窗口创建前启动）
+    print("应用程序启动...")
+    global_hotkey_manager.start_listen()
+
     window = ClipboardHistoryApp()
+
+    # 添加应用程序退出时的清理
+    app.aboutToQuit.connect(lambda: print("应用程序退出"))
+
     sys.exit(app.exec())

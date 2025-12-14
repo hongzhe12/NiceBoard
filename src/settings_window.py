@@ -25,8 +25,11 @@ class SettingsWindow(QWidget):
         self.viewer = None
 
         self.ui.history_limit.setValidator(QIntValidator(1, 100000))
-        self.ui.save_btn.clicked.connect(self.save_settings)
-        self.ui.hotkey_edit.clicked.connect(self.change_hotkey)
+
+        # 修改快捷热键
+        # self.ui.save_btn.clicked.connect(self.save_settings)
+        # self.ui.hotkey_edit.clicked.connect(self.change_hotkey)
+
         self.ui.history_limit.textChanged.connect(self._on_history_changed)
 
         # 从配置实例加载设置

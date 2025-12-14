@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QSystemTrayIcon,
                                QMenu, QLabel, QVBoxLayout, QWidget, QPushButton,
                                QHBoxLayout, QFileDialog, QMessageBox)
 
-from utils.hotkey_manager import HotkeyManager
+from utils.hotkey_manager import global_hotkey_manager
 from utils.screen_hot import Screenshot
 
 
@@ -225,11 +225,9 @@ class MyMainWindow(QMainWindow):
         # 创建系统托盘
         self.create_system_tray()
 
-        # 创建全局热键管理器
-        self.hotkey_manager = HotkeyManager()
-        self.hotkey_manager.hotkey_pressed.connect(self.start_screenshot)
-        self.hotkey_manager.esc_pressed.connect(self.handle_esc_key)
-        self.hotkey_manager.start_listen(hotkey='f1')  # 启动全局热键监听
+        # 注册热键
+        global_hotkey_manager.f10_pressed.connect(self.toggle_window)
+        global_hotkey_manager.esc_pressed.connect(self.handle_esc_key)
 
         # 根据参数决定是否显示窗口
         if self.start_hidden:
@@ -406,7 +404,6 @@ class MyMainWindow(QMainWindow):
                     QtCore.Qt.SmoothTransformation
                 )
                 self.image_label.setPixmap(scaled_pixmap)
-
 
     def handle_esc_key(self):
         """处理ESC键按下事件"""
