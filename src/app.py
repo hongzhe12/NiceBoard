@@ -29,6 +29,7 @@ from utils.config_set import config_instance
 
 from utils.input_form_dialog import InputFormDialog
 from utils.log_display import LogDisplayWindow
+from ui.screenshot_preview_window import MyMainWindow
 
 degree = 1
 
@@ -102,10 +103,9 @@ class ClipboardHistoryApp(QMainWindow):
         # hotkey = hotkey.replace('alt', '<alt>')
         # hotkey = hotkey.replace('ctrl', '<ctrl>')
 
-        global_hotkey_manager.f9_pressed.connect(self.toggle_window) # 注册F9 唤出剪贴板
+        global_hotkey_manager.f9_pressed.connect(self.toggle_window)  # 注册F9 唤出剪贴板
         global_hotkey_manager.f10_pressed.connect(self.start_screenshot)  # 注册F1 唤出截图
         global_hotkey_manager.esc_pressed.connect(self.hide)
-
 
         # 截图窗口实例（延迟创建）
         self.screenshot_window = None
@@ -153,7 +153,7 @@ class ClipboardHistoryApp(QMainWindow):
             self.hide()
 
             # 创建截图窗口实例
-            from screenshot_preview_window import MyMainWindow
+
             self.screenshot_window = MyMainWindow(start_hidden=True)
             self.screenshot_window.start_screenshot()
 
@@ -694,3 +694,24 @@ if __name__ == "__main__":
     app.aboutToQuit.connect(lambda: print("应用程序退出"))
 
     sys.exit(app.exec())
+
+    '''
+            pyinstaller --noconfirm --onefile --windowed \
+          --icon "icons/favicon.ico" \
+          --name "NiceBoard" \
+          --add-data "static;static" \
+          --add-data "templates;templates" \
+          --add-data "uploads;uploads" \
+          --add-data "backen;backen" \
+          --add-data "log;log" \
+          --add-data "resources;resources" \
+          --add-data "src;src" \
+          --add-data "ui;ui" \
+          --add-data "utils;utils" \
+          --hidden-import "engineio.async_drivers.threading" \
+          --hidden-import "flask_socketio" \
+          --hidden-import "screenshot_preview_window.MyMainWindow" \
+          --hidden-import "socketio" \
+          --hidden-import "socketio" \
+          src/app.py
+    '''
