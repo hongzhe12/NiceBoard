@@ -393,6 +393,21 @@ class MyMainWindow(QMainWindow):
             self.image_label.setText("截图失败")
             self.image_label.setPixmap(QPixmap())
 
+    def update_preview(self):
+        """更新预览图片"""
+        if not self.pixmap.isNull():
+            # 调整图片大小以适应标签，填充整个区域（可能会拉伸）
+            label_size = self.image_label.size()
+            if label_size.width() > 0 and label_size.height() > 0:
+                # 使用 IgnoreAspectRatio 填充整个区域，可能会拉伸
+                scaled_pixmap = self.pixmap.scaled(
+                    label_size,
+                    QtCore.Qt.IgnoreAspectRatio,  # 忽略宽高比
+                    QtCore.Qt.SmoothTransformation
+                )
+                self.image_label.setPixmap(scaled_pixmap)
+
+
     def handle_esc_key(self):
         """处理ESC键按下事件"""
         print("ESC键被按下")
