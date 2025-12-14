@@ -19,7 +19,7 @@ class SettingsWindow(QWidget):
         self.ui = Ui_SettingsForm()
         self.ui.setupUi(self)
 
-        self.setFixedSize(300, 250)
+        self.setFixedSize(500, 400)
         self.setWindowTitle("剪贴板历史设置")
 
         self.viewer = None

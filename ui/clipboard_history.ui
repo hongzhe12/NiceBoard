@@ -73,7 +73,6 @@ QListWidget#history_list {
     padding: 0;
     outline: none;
     font-size: 13px;
-    margin: 12px;
     color: #333333;  /* 深色文字 */
 }
 
@@ -270,7 +269,14 @@ SettingsWindow QCheckBox {
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+    <item row="5" column="0">
+     <widget class="QListWidget" name="history_list">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
      <widget class="QLineEdit" name="search_box">
       <property name="minimumSize">
        <size>
@@ -279,17 +285,35 @@ SettingsWindow QCheckBox {
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">margin: 10px 10px 0 10px;</string>
+       <string notr="true">margin: 0 0 0 0</string>
       </property>
       <property name="placeholderText">
        <string>Search...</string>
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QListWidget" name="history_list">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>41</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">background-color: rgb(243, 243, 243);</string>
+      </property>
+      <property name="text">
+       <string>长按鼠标左键拖动</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
      </widget>
     </item>

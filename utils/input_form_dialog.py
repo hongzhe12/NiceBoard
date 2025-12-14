@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel,
 from PySide6.QtGui import QFont
 from PySide6.QtCore import QDate
 
+
 class InputFormDialog(QDialog):
     def __init__(self, form_structure, parent=None):
         super().__init__(parent)
@@ -27,18 +28,30 @@ class InputFormDialog(QDialog):
     def initUI(self):
         layout = QVBoxLayout()
 
+        # 设置布局间距
+        layout.setSpacing(10)  # 增加间距
+        layout.setContentsMargins(15, 15, 15, 15)  # 设置边距
+
         font = QFont()
-        font.setPointSize(12)
+        font.setPointSize(10)  # 减小字体大小，从12改为10
+
+        label_font = QFont()
+        label_font.setPointSize(10)
+        label_font.setBold(True)  # 标签加粗
 
         for field in self.form_structure:
             label = QLabel(field["label"])
-            label.setFont(font)
+            label.setFont(label_font)
+            label.setMinimumHeight(25)  # 设置最小高度
             layout.addWidget(label)
 
             if field["type"] == "text":
                 input_widget = QLineEdit()
                 if "default" in field:
                     input_widget.setText(field["default"])
+                input_widget.setMinimumHeight(35)  # 增加最小高度
+                input_widget.setStyleSheet("padding: 5px;")  # 添加内边距
+
             elif field["type"] == "date":
                 input_widget = QDateEdit()
                 input_widget.setCalendarPopup(True)
@@ -50,64 +63,119 @@ class InputFormDialog(QDialog):
                         input_widget.setDate(QDate.currentDate())
                 else:
                     input_widget.setDate(QDate.currentDate())
+                input_widget.setMinimumHeight(35)
+                input_widget.setStyleSheet("padding: 5px;")
+
             elif field["type"] == "spinbox":
                 input_widget = QSpinBox()
                 input_widget.setRange(0, 999)
                 if "default" in field:
                     input_widget.setValue(field["default"])
+                input_widget.setMinimumHeight(35)
+                input_widget.setStyleSheet("padding: 5px;")
+
             elif field["type"] == "combo":
                 input_widget = QComboBox()
-                if "items" in field:  # 确保有items字段
+                if "items" in field:
                     input_widget.addItems(field["items"])
                 if "default" in field and field["default"] in field["items"]:
                     index = field["items"].index(field["default"])
                     input_widget.setCurrentIndex(index)
-            elif field["type"] == "textarea":  # 新增长文本输入框
+                input_widget.setMinimumHeight(35)
+                input_widget.setStyleSheet("""
+                    QComboBox {
+                        padding: 5px;
+                        border: 1px solid #ccc;
+                        border-radius: 3px;
+                    }
+                    QComboBox::drop-down {
+                        border: none;
+                    }
+                """)
+
+            elif field["type"] == "textarea":
                 input_widget = QTextEdit()
                 if "default" in field:
                     input_widget.setText(field["default"])
-                # 设置长文本输入框的最小高度
-                input_widget.setMinimumHeight(100)
-                # 可选：设置最大高度
+                input_widget.setMinimumHeight(120)  # 增加最小高度
                 input_widget.setMaximumHeight(200)
-            else:
-                input_widget = QLineEdit()  # 默认使用文本输入框
+                input_widget.setStyleSheet("""
+                    QTextEdit {
+                        padding: 5px;
+                        border: 1px solid #ccc;
+                        border-radius: 3px;
+                        font-size: 10pt;
+                    }
+                """)
 
-            input_widget.setFont(font)  # 设置输入框字体
+            else:
+                input_widget = QLineEdit()
+                input_widget.setMinimumHeight(35)
+                input_widget.setStyleSheet("padding: 5px;")
+
+            input_widget.setFont(font)
             layout.addWidget(input_widget)
             self.input_widgets.append(input_widget)
 
-            spacer = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
+            # 减小间距高度
+            spacer = QSpacerItem(20, 8, QSizePolicy.Minimum, QSizePolicy.Fixed)
             layout.addItem(spacer)
 
-        submit_button = QPushButton("提交")
+        # 添加底部填充
+        layout.addStretch(1)
 
-        submit_font = QFont()
-        submit_font.setPointSize(10)
-        submit_button.setFixedHeight(30)  # 设置按钮高度，确保文字能完全显示
-        submit_button.setFont(submit_font)  # 设置按钮字体
+        # 提交按钮
+        submit_button = QPushButton("提交")
+        submit_button.setMinimumHeight(40)  # 增加按钮高度
+        submit_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3d8b40;
+            }
+        """)
         submit_button.clicked.connect(self.accept)
         layout.addWidget(submit_button)
-        spacer = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed)
-        layout.addItem(spacer)
 
         self.setLayout(layout)
 
     def adjust_window_size(self):
-        base_width = 400  # 增加宽度以适应长文本输入框
-        base_height = 100  # 基础高度，包含按钮和一些边距
-        field_height = 50  # 每个字段的大致高度（标签 + 输入框）
-        spacer_height = 10  # 间隔的高度
+        # 动态计算窗口大小
+        base_width = 450  # 增加宽度
+        field_count = len(self.form_structure)
 
-        # 计算总高度，为长文本输入框分配更多空间
-        total_height = base_height
+        # 计算基础高度
+        base_height = 120  # 标题栏 + 按钮 + 边距
+
+        # 计算字段高度
+        field_heights = 0
         for field in self.form_structure:
             if field["type"] == "textarea":
-                total_height += 120  # 长文本输入框的高度
+                field_heights += 140  # 长文本字段更高
             else:
-                total_height += field_height + spacer_height
+                field_heights += 70  # 普通字段高度
 
-        self.setFixedSize(base_width, total_height)
+        total_height = base_height + field_heights
+
+        # 限制最大高度
+        max_height = QApplication.primaryScreen().size().height() * 0.8
+        if total_height > max_height:
+            total_height = int(max_height)
+            # 如果太高，设置为可滚动
+            self.setMinimumSize(base_width, int(max_height * 0.6))
+            self.setMaximumSize(base_width, int(max_height))
+        else:
+            self.setFixedSize(base_width, total_height)
 
     def get_input_values(self):
         values = []
@@ -121,7 +189,7 @@ class InputFormDialog(QDialog):
                 values.append(widget.value())
             elif field_type == "combo":
                 values.append(widget.currentText())
-            elif field_type == "textarea":  # 处理长文本输入
+            elif field_type == "textarea":
                 values.append(widget.toPlainText())
         return values
 

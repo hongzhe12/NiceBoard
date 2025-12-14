@@ -232,17 +232,29 @@ class ClipboardHistoryApp(QMainWindow):
         # 使用 QDesktopServices 打开浏览器
         QDesktopServices.openUrl(url)
 
+    # def on_tray_activated(self, reason):
+    #     """处理托盘图标点击事件（更健壮版）"""
+    #     if reason == QSystemTrayIcon.Trigger:  # 左键单击
+    #         settings_window = getattr(self, 'settings_window', None)  # 安全获取属性
+    #         if settings_window is not None and settings_window.isVisible():
+    #             settings_window.hide()  # 隐藏窗口
+    #         else:
+    #             self.show_settings()  # 显示或创建窗口
+    #             if self.settings_window and self.settings_window.isVisible():
+    #                 self.settings_window.raise_()  # 确保窗口前置
+    #                 self.settings_window.activateWindow()  # 激活窗口
+
     def on_tray_activated(self, reason):
-        """处理托盘图标点击事件（更健壮版）"""
-        if reason == QSystemTrayIcon.Trigger:  # 左键单击
-            settings_window = getattr(self, 'settings_window', None)  # 安全获取属性
-            if settings_window is not None and settings_window.isVisible():
-                settings_window.hide()  # 隐藏窗口
-            else:
-                self.show_settings()  # 显示或创建窗口
-                if self.settings_window and self.settings_window.isVisible():
-                    self.settings_window.raise_()  # 确保窗口前置
-                    self.settings_window.activateWindow()  # 激活窗口
+        """处理托盘图标点击事件（唤出主界面）"""
+        if reason == QSystemTrayIcon.Trigger:  # 单击隐藏窗口
+            self.hide()
+        elif reason == QSystemTrayIcon.DoubleClick:  # 双击唤出剪贴板历史窗口
+            self.show_normal()
+            # 将窗口移到屏幕中央
+            screen_geo = QApplication.primaryScreen().availableGeometry()
+            x = (screen_geo.width() - self.width()) // 2
+            y = (screen_geo.height() - self.height()) // 2
+            self.move(x, y)
 
     def show_settings(self):
         """100%能显示的设置窗口方法"""

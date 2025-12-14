@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'clipboard_history.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.1
+## Created by: Qt User Interface Compiler version 6.10.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -15,8 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGridLayout, QLineEdit, QListWidget,
-    QListWidgetItem, QMainWindow, QSizePolicy, QWidget)
+from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMainWindow, QSizePolicy,
+    QWidget)
 
 class Ui_SimpleClipboardHistory(object):
     def setupUi(self, SimpleClipboardHistory):
@@ -84,7 +85,6 @@ class Ui_SimpleClipboardHistory(object):
 "    outli"
                         "ne: none;\n"
 "    font-size: 13px;\n"
-"    margin: 12px;\n"
 "    color: #333333;  /* \u6df1\u8272\u6587\u5b57 */\n"
 "}\n"
 "\n"
@@ -117,9 +117,9 @@ class Ui_SimpleClipboardHistory(object):
 "    background: rgba(0, 0, 0, 0.05);  /* \u975e\u5e38\u6de1\u7684\u80cc\u666f */\n"
 "    width: 10px;  /* \u6eda\u52a8\u6761\u5bbd\u5ea6 */\n"
 "    margin: 2px;\n"
-"    "
-                        "border-radius: 0;\n"
-"}\n"
+"    border-radius: 0;\n"
+""
+                        "}\n"
 "\n"
 "QScrollBar::handle:vertical {\n"
 "    background: rgba(0, 0, 0, 0.2);  /* \u534a\u900f\u660e\u7070\u8272 */\n"
@@ -149,11 +149,11 @@ class Ui_SimpleClipboardHistory(object):
 "    background: rgba(0, 0, 0, 0.05);\n"
 "    height: 10px;  /* \u6eda\u52a8\u6761\u9ad8\u5ea6 */\n"
 "    margin: 2px;\n"
-"    border-"
-                        "radius: 0;\n"
+"    border-radius: 0;\n"
 "}\n"
 "\n"
-"QScrollBar::handle:horizontal {\n"
+""
+                        "QScrollBar::handle:horizontal {\n"
 "    background: rgba(0, 0, 0, 0.2);\n"
 "    min-width: 30px;  /* \u6700\u5c0f\u5bbd\u5ea6 */\n"
 "    border-radius: 5px;\n"
@@ -185,9 +185,9 @@ class Ui_SimpleClipboardHistory(object):
 "/* ===== \u529f\u80fd\u6309\u94ae ===== */\n"
 "QPushButton#toggle_btn {\n"
 "    background-color: #4CAF50;\n"
-"   "
-                        " border: none;\n"
-"    color: white;\n"
+"    border: none;\n"
+"    col"
+                        "or: white;\n"
 "    padding: 10px;\n"
 "    margin: 6px;\n"
 "    border-radius: 5px;\n"
@@ -239,8 +239,8 @@ class Ui_SimpleClipboardHistory(object):
 "}\n"
 "\n"
 "\n"
-"/*"
-                        " \u7cfb\u7edf\u6258\u76d8\u83dc\u5355\u6837\u5f0f */\n"
+"/* \u7cfb\u7edf\u6258\u76d8\u83dc"
+                        "\u5355\u6837\u5f0f */\n"
 "QMenu {\n"
 "    background-color: #f5f5f5;\n"
 "    border: 1px solid #d0d0d0;\n"
@@ -286,18 +286,30 @@ class Ui_SimpleClipboardHistory(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.search_box = QLineEdit(self.centralwidget)
-        self.search_box.setObjectName(u"search_box")
-        self.search_box.setMinimumSize(QSize(0, 41))
-        self.search_box.setStyleSheet(u"margin: 10px 10px 0 10px;")
-
-        self.gridLayout.addWidget(self.search_box, 0, 0, 1, 1)
-
         self.history_list = QListWidget(self.centralwidget)
         self.history_list.setObjectName(u"history_list")
         self.history_list.setStyleSheet(u"")
 
-        self.gridLayout.addWidget(self.history_list, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.history_list, 5, 0, 1, 1)
+
+        self.search_box = QLineEdit(self.centralwidget)
+        self.search_box.setObjectName(u"search_box")
+        self.search_box.setMinimumSize(QSize(0, 41))
+        self.search_box.setStyleSheet(u"margin: 0 0 0 0")
+
+        self.gridLayout.addWidget(self.search_box, 3, 0, 1, 1)
+
+        self.label = QLabel(self.centralwidget)
+        self.label.setObjectName(u"label")
+        self.label.setMinimumSize(QSize(0, 41))
+        font = QFont()
+        font.setFamilies([u"\u5fae\u8f6f\u96c5\u9ed1"])
+        font.setPointSize(12)
+        self.label.setFont(font)
+        self.label.setStyleSheet(u"background-color: rgb(243, 243, 243);")
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout.addWidget(self.label, 2, 0, 1, 1)
 
         SimpleClipboardHistory.setCentralWidget(self.centralwidget)
 
@@ -309,5 +321,6 @@ class Ui_SimpleClipboardHistory(object):
     def retranslateUi(self, SimpleClipboardHistory):
         SimpleClipboardHistory.setWindowTitle(QCoreApplication.translate("SimpleClipboardHistory", u"Clipboard History", None))
         self.search_box.setPlaceholderText(QCoreApplication.translate("SimpleClipboardHistory", u"Search...", None))
+        self.label.setText(QCoreApplication.translate("SimpleClipboardHistory", u"\u957f\u6309\u9f20\u6807\u5de6\u952e\u62d6\u52a8", None))
     # retranslateUi
 
