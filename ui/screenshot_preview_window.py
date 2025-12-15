@@ -5,11 +5,12 @@ from datetime import datetime
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import (QPixmap, QIcon, QAction, QPainter, QColor,
-                           QBrush, QFont)
+                           QBrush, QFont, QScreen)
 from PySide6.QtWidgets import (QApplication, QMainWindow, QSystemTrayIcon,
                                QMenu, QLabel, QVBoxLayout, QWidget, QPushButton,
                                QHBoxLayout, QFileDialog, QMessageBox)
 
+from log.log import logger
 from utils.hotkey_manager import global_hotkey_manager
 from utils.screen_hot import Screenshot
 
@@ -193,10 +194,17 @@ class ScreenshotPreviewWindow(QWidget):
 
 
 class MyMainWindow(QMainWindow):
-    def __init__(self, start_hidden=True):
+    def __init__(self, start_hidden=False):
         super().__init__()
 
         self.start_hidden = start_hidden  # 控制启动时是否隐藏窗口
+
+        # 获取当前屏幕的缩放信息 [设置高DPI缩放]
+        # screen = QApplication.primaryScreen()
+        # self.device_pixel_ratio = screen.devicePixelRatio()
+        # logger.info(f"设备像素比率: {self.device_pixel_ratio}")
+        # # 设置高DPI缩放策略 [设置高DPI缩放]
+        # QApplication.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
         # 创建基本UI元素
         self.setWindowTitle("截图工具")
@@ -222,19 +230,12 @@ class MyMainWindow(QMainWindow):
         # 预览窗口引用
         self.preview_window = None
 
-        # 创建系统托盘
-        self.create_system_tray()
-
         # 注册热键
         global_hotkey_manager.f10_pressed.connect(self.toggle_window)
         global_hotkey_manager.esc_pressed.connect(self.handle_esc_key)
 
-        # 根据参数决定是否显示窗口
-        if self.start_hidden:
-            # 启动时隐藏窗口
-            self.hide()
-        else:
-            self.show()
+        # 显示窗口
+        self.show()
 
     def create_default_icon(self):
         """创建默认图标"""
@@ -249,58 +250,6 @@ class MyMainWindow(QMainWindow):
         painter.end()
         return QIcon(icon_pixmap)
 
-    def create_system_tray(self):
-        """创建系统托盘"""
-        # 创建托盘图标
-        self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(self.windowIcon())
-
-        # 创建托盘菜单
-        tray_menu = QMenu()
-
-        # 显示/隐藏主窗口
-        self.toggle_window_action = QAction("显示主窗口", self)
-        self.toggle_window_action.triggered.connect(self.toggle_window)
-        tray_menu.addAction(self.toggle_window_action)
-
-        # 开始截图
-        screenshot_action = QAction("开始截图", self)
-        screenshot_action.triggered.connect(self.start_screenshot)
-        tray_menu.addAction(screenshot_action)
-
-        # 分隔线
-        tray_menu.addSeparator()
-
-        # 退出程序
-        quit_action = QAction("退出", self)
-        quit_action.triggered.connect(self.quit_application)
-        tray_menu.addAction(quit_action)
-
-        # 设置托盘菜单
-        self.tray_icon.setContextMenu(tray_menu)
-
-        # 托盘图标点击事件
-        self.tray_icon.activated.connect(self.tray_icon_activated)
-
-        # 显示托盘图标
-        self.tray_icon.show()
-
-        # 如果启动时隐藏窗口，显示托盘提示
-        if self.start_hidden:
-            self.tray_icon.showMessage(
-                "截图工具",
-                "程序已启动并运行在系统托盘中",
-                QSystemTrayIcon.Information,
-                3000
-            )
-
-    def tray_icon_activated(self, reason):
-        """托盘图标激活事件"""
-        if reason == QSystemTrayIcon.Trigger:  # 左键单击
-            self.toggle_window()
-        elif reason == QSystemTrayIcon.DoubleClick:  # 双击
-            self.toggle_window()
-
     def toggle_window(self):
         """切换窗口显示/隐藏状态"""
         if self.isVisible():
@@ -313,12 +262,10 @@ class MyMainWindow(QMainWindow):
         self.show()
         self.activateWindow()
         self.raise_()
-        self.toggle_window_action.setText("隐藏主窗口")
 
     def hide_window(self):
-        """隐藏主窗口到托盘"""
+        """隐藏主窗口"""
         self.hide()
-        self.toggle_window_action.setText("显示主窗口")
 
     def start_screenshot(self):
         """开始截图"""
@@ -419,8 +366,7 @@ class MyMainWindow(QMainWindow):
 
     def quit_application(self):
         """退出应用程序"""
-        self.hotkey_manager.stop_listen()
-        self.tray_icon.hide()
+        global_hotkey_manager.stop_listen()
         QApplication.quit()
 
     def keyPressEvent(self, event):
@@ -438,14 +384,21 @@ class MyMainWindow(QMainWindow):
         self.hide_window()
 
 
+# 设置高DPI缩放模式，禁用Qt的自动缩放 [设置高DPI缩放]
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "0"
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
+os.environ["QT_FONT_DPI"] = "96"
+
+
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("截图工具")
 
-    # 设置应用程序退出时清理资源
-    app.aboutToQuit.connect(lambda: print("应用程序退出"))
+    # 设置高DPI缩放策略 [设置高DPI缩放]
+    # QApplication.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
-    window = MyMainWindow(start_hidden=True)
+    window = MyMainWindow(start_hidden=False)
+    window.start_screenshot()
     sys.exit(app.exec())
 
 
