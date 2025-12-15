@@ -104,11 +104,12 @@ class ClipboardHistoryApp(QMainWindow):
         # hotkey = hotkey.replace('ctrl', '<ctrl>')
 
         global_hotkey_manager.f9_pressed.connect(self.toggle_window)  # 注册F9 唤出剪贴板
-        global_hotkey_manager.f10_pressed.connect(self.start_screenshot)  # 注册F1 唤出截图
-        global_hotkey_manager.esc_pressed.connect(self.hide)
+        global_hotkey_manager.esc_pressed.connect(self.hide)  # 注册ESC 隐藏剪贴板
 
-        # 截图窗口实例（延迟创建）
-        self.screenshot_window = None
+        # 按下F10 启动截图功能
+        self.screenshot_window = MyMainWindow(start_hidden=True)  # 创建截图窗口实例
+        global_hotkey_manager.f10_pressed.connect(self.hide)  # 隐藏界面
+        global_hotkey_manager.f10_pressed.connect(self.start_screenshot)  # 注册F10 唤出截图
 
         # 加载历史记录
         self._load_history()
@@ -151,9 +152,7 @@ class ClipboardHistoryApp(QMainWindow):
         try:
             # 隐藏主窗口
             self.hide()
-
             # 创建截图窗口实例
-
             self.screenshot_window = MyMainWindow(start_hidden=True)
             self.screenshot_window.start_screenshot()
 

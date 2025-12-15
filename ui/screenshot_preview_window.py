@@ -4,13 +4,11 @@ from datetime import datetime
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import (QPixmap, QIcon, QAction, QPainter, QColor,
-                           QBrush, QFont, QScreen)
-from PySide6.QtWidgets import (QApplication, QMainWindow, QSystemTrayIcon,
-                               QMenu, QLabel, QVBoxLayout, QWidget, QPushButton,
+from PySide6.QtGui import (QPixmap, QIcon, QPainter, QColor,
+                           QBrush, QFont)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton,
                                QHBoxLayout, QFileDialog, QMessageBox)
 
-from log.log import logger
 from utils.hotkey_manager import global_hotkey_manager
 from utils.screen_hot import Screenshot
 
@@ -199,13 +197,6 @@ class MyMainWindow(QMainWindow):
 
         self.start_hidden = start_hidden  # 控制启动时是否隐藏窗口
 
-        # 获取当前屏幕的缩放信息 [设置高DPI缩放]
-        # screen = QApplication.primaryScreen()
-        # self.device_pixel_ratio = screen.devicePixelRatio()
-        # logger.info(f"设备像素比率: {self.device_pixel_ratio}")
-        # # 设置高DPI缩放策略 [设置高DPI缩放]
-        # QApplication.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-
         # 创建基本UI元素
         self.setWindowTitle("截图工具")
         self.setGeometry(100, 100, 800, 600)
@@ -230,12 +221,11 @@ class MyMainWindow(QMainWindow):
         # 预览窗口引用
         self.preview_window = None
 
-        # 注册热键
-        global_hotkey_manager.f10_pressed.connect(self.toggle_window)
-        global_hotkey_manager.esc_pressed.connect(self.handle_esc_key)
-
         # 显示窗口
-        self.show()
+        # self.show()
+
+        if start_hidden:
+            self.hide()
 
     def create_default_icon(self):
         """创建默认图标"""
