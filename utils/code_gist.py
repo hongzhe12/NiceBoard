@@ -127,7 +127,7 @@ api = GiteeGistAPI(access_token)
 #     # 2. 创建代码片段
 #     print("\n创建代码片段:")
 #     new_gist = api.create_gist(
-#         files={"test.py": {"content": "print('Hello World')"}},
+#         files={"screen_window.py": {"content": "print('Hello World')"}},
 #         description="这是一个测试代码片段2025年6月22日"
 #     )
 #     print(new_gist)

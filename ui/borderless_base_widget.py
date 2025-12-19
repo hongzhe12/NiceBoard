@@ -52,6 +52,16 @@ class ImagePreviewWidget(QWidget):
             self.image_label.setText("无法加载图片")
             self.original_pixmap = None
 
+    def set_pixmap(self, pixmap: QPixmap):
+        """设置Pixmap图片"""
+        if not pixmap.isNull():
+            self.original_pixmap = pixmap
+            self.scale_factor = 1.0  # 重置缩放因子
+            self._update_display()
+        else:
+            self.image_label.setText("无法加载图片")
+            self.original_pixmap = None
+
     def set_image_from_data(self, image_data):
         """从二进制数据设置图片"""
         image = QImage()
@@ -88,8 +98,6 @@ class ImagePreviewWidget(QWidget):
             return QSize()
 
         base_size: QSize = self.original_pixmap.size()  # 原图片大小
-
-        print("98 line")
 
         if self.scale_factor == 1.0:
             # 适应窗口
@@ -131,9 +139,9 @@ class ImagePreviewWidget(QWidget):
             current_height = int(original_height * self.scale_factor)
 
             # 调试信息：打印缩放因子和当前尺寸
-            print(f"缩放因子: {self.scale_factor:.2f}, "
-                  f"原始尺寸: ({original_width}x{original_height}), "
-                  f"当前尺寸: ({current_width}x{current_height})")
+            # print(f"缩放因子: {self.scale_factor:.2f}, "
+            #       f"原始尺寸: ({original_width}x{original_height}), "
+            #       f"当前尺寸: ({current_width}x{current_height})")
 
             # 更新显示
             self._update_display()

@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from log.log import logger, log_file
+from ui.screen_window import ScreenshotManager
 from utils.hotkey_manager import global_hotkey_manager
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +30,6 @@ from utils.config_set import config_instance
 
 from utils.input_form_dialog import InputFormDialog
 from utils.log_display import LogDisplayWindow
-from ui.screenshot_preview_window import MyMainWindow
 
 degree = 1
 
@@ -93,23 +93,14 @@ class ClipboardHistoryApp(QMainWindow):
         self.clipboard = QApplication.clipboard()
         self.clipboard.dataChanged.connect(self._on_clipboard_change)
 
-        # # 使用配置实例获取设置
-        # hotkey = config_instance.get('hotkey', 'f9')
-        # self.__hotkey = hotkey
-        #
-        # # 转换小写
-        # hotkey = '+'.join([k.strip().lower() for k in hotkey.split('+')])
-        # # 预处理
-        # hotkey = hotkey.replace('alt', '<alt>')
-        # hotkey = hotkey.replace('ctrl', '<ctrl>')
-
         global_hotkey_manager.f9_pressed.connect(self.toggle_window)  # 注册F9 唤出剪贴板
         global_hotkey_manager.esc_pressed.connect(self.hide)  # 注册ESC 隐藏剪贴板
 
         # 按下F10 启动截图功能
-        self.screenshot_window = MyMainWindow(start_hidden=True)  # 创建截图窗口实例
+        self.screenshot_manager = ScreenshotManager()
         global_hotkey_manager.f10_pressed.connect(self.hide)  # 隐藏界面
-        global_hotkey_manager.f10_pressed.connect(self.start_screenshot)  # 注册F10 唤出截图
+        global_hotkey_manager.f10_pressed.connect(self.screenshot_manager.take_screenshot)  # 注册F10 唤出截图
+        global_hotkey_manager.esc_pressed.connect(self.screenshot_manager.close_preview_and_screenshot)
 
         # 加载历史记录
         self._load_history()
@@ -147,19 +138,6 @@ class ClipboardHistoryApp(QMainWindow):
         # 日志窗口
         self.log_window = None
 
-    def start_screenshot(self):
-        """启动截图功能"""
-        try:
-            # 隐藏主窗口
-            self.hide()
-            # 创建截图窗口实例
-            self.screenshot_window = MyMainWindow(start_hidden=True)
-            self.screenshot_window.start_screenshot()
-
-        except Exception as e:
-            logger.error(f"启动截图功能失败: {e}")
-            self.show_error("截图功能错误", f"无法启动截图功能: {e}")
-
     def setup_system_tray(self):
         """创建系统托盘图标"""
         self.tray_icon = QSystemTrayIcon(self)
@@ -180,10 +158,6 @@ class ClipboardHistoryApp(QMainWindow):
 
         history_action = tray_menu.addAction("查看剪贴板历史")
         history_action.triggered.connect(self.toggle_window)
-
-        # 添加截图选项
-        screenshot_action = tray_menu.addAction("截图")
-        screenshot_action.triggered.connect(self.start_screenshot)
 
         backend_action = tray_menu.addAction("打开后台管理")
         # 连接打开浏览器的信号槽
@@ -437,7 +411,6 @@ class ClipboardHistoryApp(QMainWindow):
     def show_startup_notification(self):
         """增强版通知方法"""
         if not QSystemTrayIcon.isSystemTrayAvailable():
-            print("系统不支持托盘通知")  # 调试用
             return
 
         # 必须调用show()才能发送通知
@@ -622,17 +595,12 @@ class ClipboardHistoryApp(QMainWindow):
 
     def toggle_window(self):
         """切换窗口显示状态"""
-        print("toggle_window 方法被调用 (来自F9热键)")
-        logger.info(f"toggle_window 方法被调用")
         if self.isVisible():
-            print("窗口当前可见，将隐藏")
             self.hide()
         else:
-            print("窗口当前隐藏，将显示")
             self._show_at_cursor()
 
     def _show_at_cursor(self):
-        print("_show_at_cursor 方法被调用")
         logger.info(f" _show_at_cursor 方法被调用")
         # 设置窗口属性
         self.setWindowFlags(
@@ -684,7 +652,6 @@ if __name__ == "__main__":
     app.setApplicationName("好贴板")  # 设置应用程序名称
 
     # 启动全局热键监听（必须在窗口创建前启动）
-    print("应用程序启动...")
     global_hotkey_manager.start_listen()
 
     window = ClipboardHistoryApp()
