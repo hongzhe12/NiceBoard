@@ -127,23 +127,23 @@ class InputFormDialog(QDialog):
         # 提交按钮
         submit_button = QPushButton("提交")
         submit_button.setMinimumHeight(40)  # 增加按钮高度
-        submit_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                padding: 10px;
-                font-size: 12px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:pressed {
-                background-color: #3d8b40;
-            }
-        """)
+        # submit_button.setStyleSheet("""
+        #     QPushButton {
+        #         background-color: #4CAF50;
+        #         color: white;
+        #         border: none;
+        #         border-radius: 5px;
+        #         padding: 10px;
+        #         font-size: 12px;
+        #         font-weight: bold;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: #45a049;
+        #     }
+        #     QPushButton:pressed {
+        #         background-color: #3d8b40;
+        #     }
+        # """)
         submit_button.clicked.connect(self.accept)
         layout.addWidget(submit_button)
 

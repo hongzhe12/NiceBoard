@@ -1,6 +1,7 @@
 import sys
 
 from PySide6.QtCore import Signal, QObject
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 
 from ui.borderless_base_widget import ImagePreviewWidget
@@ -51,6 +52,10 @@ class ScreenshotManager(QObject):
         if pixmap.isNull():
             self.cancelled.emit()
         else:
+            # 将截图复制到剪贴板
+            clipboard = QGuiApplication.clipboard()
+            clipboard.setPixmap(pixmap)
+
             # 创建预览窗口
             self.preview = ImagePreviewWidget()
             self.preview.setWindowTitle("图片预览")
