@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PySide6.QtCore import Signal, QObject
@@ -86,6 +87,10 @@ class ScreenshotManager(QObject):
             self.screenshot_window.hide()
             # self.screenshot_window = None
 
+# 设置高DPI缩放模式，禁用Qt的自动缩放 [设置高DPI缩放]
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "0"
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
+os.environ["QT_FONT_DPI"] = "96"
 
 # 使用示例
 def example_usage():
